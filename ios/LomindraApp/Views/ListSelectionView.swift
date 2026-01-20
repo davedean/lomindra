@@ -128,7 +128,7 @@ struct ListSelectionView: View {
         do {
             remindersLists = try await remindersService.fetchLists()
         } catch {
-            errorMessage = "Failed to load Reminders lists: \(error.localizedDescription)"
+            errorMessage = "Failed to load Reminders lists: \(ErrorPresenter.userMessage(error))"
         }
         if let apiBase = nonEmpty(appState.settings.apiBase), let token = appState.token, !token.isEmpty {
             do {
@@ -136,7 +136,7 @@ struct ListSelectionView: View {
                 projects = try await api.fetchProjects(token: token)
             } catch {
                 projects = []
-                projectError = "Failed to load Vikunja projects: \(error.localizedDescription)"
+                projectError = "Failed to load Vikunja projects: \(ErrorPresenter.userMessage(error))"
             }
         } else if appState.token != nil && !(appState.token?.isEmpty ?? true) {
             projectError = "Missing server URL for Vikunja projects."
