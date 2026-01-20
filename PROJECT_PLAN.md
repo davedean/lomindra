@@ -94,10 +94,10 @@ Deliverable: multi-list sync with selectable lists + roadmap for iOS app.
 Deliverable: working iOS MVP with manual sync.
 
 ## Phase 7: iOS Reliability
-- Background sync (BGAppRefreshTask/BGProcessingTask).
-- Conflict review UI with per-conflict resolution.
+- Background sync (BGAppRefreshTask; BGProcessingTask if needed later).
+- Conflict review UI with per-conflict resolution. (done)
 - Error handling, retry/backoff, and safe logging.
-- Simplify sync output: "Sync complete" on success; hide conflict log links unless conflicts exist.
+- Simplify sync output: "Sync complete" on success; hide conflict log links unless conflicts exist. (done)
 - When sync fails, prefer user-focused error summaries and optionally provide a "request support" action that shares a redacted log.
 
 Deliverable: reliable sync with conflict review.

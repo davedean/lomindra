@@ -31,6 +31,7 @@ final class SyncCoordinator {
                  mode: SyncRunMode,
                  allowConflicts: Bool,
                  conflictReportPath: String?,
+                 conflictResolutions: [ConflictKey: ConflictResolution] = [:],
                  progress: SyncProgressHandler?) async throws -> SyncRunResult {
         let listMapPath = try Self.writeListMap(settings: settings)
         let config = try Self.buildConfig(settings: settings, token: token, listMapPath: listMapPath)
@@ -39,7 +40,8 @@ final class SyncCoordinator {
             allowConflicts: allowConflicts,
             conflictReportPath: conflictReportPath,
             resolveConflicts: .none,
-            progress: progress
+            progress: progress,
+            conflictResolutions: conflictResolutions
         )
         let task = Task.detached {
             try VikunjaSyncLib.runSync(config: config, options: options)

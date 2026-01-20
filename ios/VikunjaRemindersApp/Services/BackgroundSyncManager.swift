@@ -221,7 +221,10 @@ final class BackgroundSyncManager {
     }
 
     private func summaryText(_ summary: SyncSummary) -> String {
-        return "apply: lists=\(summary.listsProcessed), createVikunja=\(summary.createdInVikunja), createReminders=\(summary.createdInReminders), updateVikunja=\(summary.updatedVikunja), updateReminders=\(summary.updatedReminders), deleteVikunja=\(summary.deletedVikunja), deleteReminders=\(summary.deletedReminders), conflicts=\(summary.conflicts)"
+        if summary.conflicts > 0 {
+            return "Conflicts detected (\(summary.conflicts))."
+        }
+        return "Sync complete."
     }
 
     private func permittedIdentifiers() -> [String] {
