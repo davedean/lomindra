@@ -5,6 +5,30 @@ struct VikunjaProject: Identifiable, Hashable, Decodable {
     let title: String
 }
 
+private struct RetryPolicy {
+    let maxAttempts: Int
+    let baseDelay: TimeInterval
+    let maxDelay: TimeInterval
+    let jitterRange: ClosedRange<Double>
+
+    init(maxAttempts: Int = 3,
+         baseDelay: TimeInterval = 0.6,
+         maxDelay: TimeInterval = 4.0,
+         jitterRange: ClosedRange<Double> = 0.85...1.15) {
+        self.maxAttempts = maxAttempts
+        self.baseDelay = baseDelay
+        self.maxDelay = maxDelay
+        self.jitterRange = jitterRange
+    }
+
+    func delayNanoseconds(forAttempt attempt: Int) -> UInt64 {
+        let exponent = pow(2.0, Double(max(0, attempt - 1)))
+        let delay = min(maxDelay, baseDelay * exponent)
+        let jitter = Double.random(in: jitterRange)
+        return UInt64(delay * jitter * 1_000_000_000)
+    }
+}
+
 final class VikunjaAPI {
     private let apiBase: String
     private let session: URLSession
@@ -81,6 +105,25 @@ final class VikunjaAPI {
     }
 
     private func request(method: String, path: String, token: String?, body: [String: Any]?) async throws -> Data {
+        let policy = RetryPolicy()
+        var lastError: Error?
+        for attempt in 1...policy.maxAttempts {
+            do {
+                return try await requestOnce(method: method, path: path, token: token, body: body)
+            } catch {
+                lastError = error
+                if attempt < policy.maxAttempts, shouldRetry(error: error) {
+                    let delay = policy.delayNanoseconds(forAttempt: attempt)
+                    try? await Task.sleep(nanoseconds: delay)
+                    continue
+                }
+                throw error
+            }
+        }
+        throw lastError ?? NSError(domain: "vikunja", code: 1, userInfo: [NSLocalizedDescriptionKey: "Request failed after retries"])
+    }
+
+    private func requestOnce(method: String, path: String, token: String?, body: [String: Any]?) async throws -> Data {
         let url = URL(string: "\(apiBase)\(path)")!
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -96,9 +139,38 @@ final class VikunjaAPI {
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let status = (response as? HTTPURLResponse)?.statusCode ?? -1
             let message = String(data: data, encoding: .utf8) ?? ""
-            throw NSError(domain: "vikunja", code: status, userInfo: [NSLocalizedDescriptionKey: "Bad response: \(message)"])
+            let safeMessage = SafeLog.redact(message, tokens: token.map { [$0] } ?? [])
+            throw NSError(domain: "vikunja", code: status, userInfo: [NSLocalizedDescriptionKey: "Bad response: \(safeMessage)"])
         }
         return data
+    }
+
+    private func shouldRetry(error: Error) -> Bool {
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            switch nsError.code {
+            case NSURLErrorTimedOut,
+                 NSURLErrorCannotFindHost,
+                 NSURLErrorCannotConnectToHost,
+                 NSURLErrorNetworkConnectionLost,
+                 NSURLErrorDNSLookupFailed,
+                 NSURLErrorNotConnectedToInternet:
+                return true
+            case NSURLErrorCancelled:
+                return false
+            default:
+                return false
+            }
+        }
+        if nsError.domain == "vikunja" {
+            if nsError.code == 429 {
+                return true
+            }
+            if (500...599).contains(nsError.code) {
+                return true
+            }
+        }
+        return false
     }
 
     static func normalizeBase(_ value: String) -> String {
@@ -134,10 +206,11 @@ final class VikunjaAPI {
         }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count <= 200 {
-            return trimmed
+            return SafeLog.redact(trimmed)
         }
         let index = trimmed.index(trimmed.startIndex, offsetBy: 200)
-        return "\(trimmed[..<index])…"
+        let snippet = String(trimmed[..<index])
+        return "\(SafeLog.redact(snippet))..."
     }
 }
 

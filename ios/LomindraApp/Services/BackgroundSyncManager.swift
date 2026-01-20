@@ -210,7 +210,7 @@ final class BackgroundSyncManager {
                 lastRun: start,
                 success: false,
                 summary: nil,
-                errorMessage: error.localizedDescription,
+                errorMessage: ErrorPresenter.userMessage(error),
                 reportPath: nil
             )
         }

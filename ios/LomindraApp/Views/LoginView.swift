@@ -66,13 +66,13 @@ struct LoginView: View {
             do {
                 jwt = try await api.login(username: trimmedUser, password: trimmedPass)
             } catch {
-                throw NSError(domain: "login", code: 2, userInfo: [NSLocalizedDescriptionKey: "Login failed: \(error.localizedDescription)"])
+                throw NSError(domain: "login", code: 2, userInfo: [NSLocalizedDescriptionKey: ErrorPresenter.userMessage(error)])
             }
             let token: String
             do {
                 token = try await api.createAPIToken(jwt: jwt, title: "iOS Sync")
             } catch {
-                throw NSError(domain: "login", code: 3, userInfo: [NSLocalizedDescriptionKey: "Token creation failed: \(error.localizedDescription)"])
+                throw NSError(domain: "login", code: 3, userInfo: [NSLocalizedDescriptionKey: ErrorPresenter.userMessage(error)])
             }
             let newSettings = AppSettings(
                 apiBase: normalizedBase,
@@ -87,7 +87,7 @@ struct LoginView: View {
             appState.saveToken(token)
             password = ""
         } catch {
-            errorMessage = "Login failed: \(error.localizedDescription)"
+            errorMessage = "Login failed: \(ErrorPresenter.userMessage(error))"
         }
         isWorking = false
     }
