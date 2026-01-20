@@ -189,7 +189,7 @@ struct SyncView: View {
         } catch {
             await MainActor.run {
                 guard currentRunId == runId else { return }
-                errorMessage = "Sync failed: \(error.localizedDescription)"
+                errorMessage = "Sync failed: \(ErrorPresenter.userMessage(error))"
                 statusMessage = "Sync failed."
                 finishedRunId = runId
             }

@@ -29,6 +29,12 @@
 	</dict>
 	<key>NSRemindersUsageDescription</key>
 	<string>Reminders access is required to sync tasks.</string>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

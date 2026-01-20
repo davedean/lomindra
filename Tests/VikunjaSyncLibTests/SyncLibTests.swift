@@ -427,4 +427,35 @@ final class SyncLibTests: XCTestCase {
         XCTAssertEqual(plan.toUpdateVikunja.count, 0)
         XCTAssertEqual(plan.toUpdateReminders.count, 0)
     }
+
+    // MARK: - retry/redaction Tests
+
+    func testRedactSensitiveRemovesTokenAndBearer() {
+        let token = "abc123"
+        let input = "Bearer abc123 and token abc123 in response"
+        let output = redactSensitive(input, token: token)
+        XCTAssertFalse(output.contains(token))
+        XCTAssertTrue(output.contains("Bearer [redacted]"))
+    }
+
+    func testRedactSensitiveRedactsJSONTokenFields() {
+        let input = "{\"token\":\"secret\",\"jwt\":\"secret2\"}"
+        let output = redactSensitive(input, token: "")
+        XCTAssertEqual(output, "{\"token\":\"[redacted]\",\"jwt\":\"[redacted]\"}")
+    }
+
+    func testShouldRetryVikunjaRequestForHTTP500() {
+        let error = NSError(domain: "vikunja", code: 500, userInfo: nil)
+        XCTAssertTrue(shouldRetryVikunjaRequest(error: error))
+    }
+
+    func testShouldRetryVikunjaRequestForURLErrorTimedOut() {
+        let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil)
+        XCTAssertTrue(shouldRetryVikunjaRequest(error: error))
+    }
+
+    func testShouldRetryVikunjaRequestFalseForAuthError() {
+        let error = NSError(domain: "vikunja", code: 401, userInfo: nil)
+        XCTAssertFalse(shouldRetryVikunjaRequest(error: error))
+    }
 }

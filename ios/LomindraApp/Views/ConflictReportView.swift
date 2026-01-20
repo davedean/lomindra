@@ -173,7 +173,7 @@ struct ConflictReportView: View {
             errorMessage = nil
             updateSelections(for: decoded)
         } catch {
-            errorMessage = "Failed to load report: \(error.localizedDescription)"
+            errorMessage = "Failed to load report: \(ErrorPresenter.userMessage(error))"
         }
     }
 
@@ -231,7 +231,7 @@ struct ConflictReportView: View {
             } catch {
                 await MainActor.run {
                     isApplying = false
-                    errorMessage = "Failed to apply resolutions: \(error.localizedDescription)"
+                    errorMessage = "Failed to apply resolutions: \(ErrorPresenter.userMessage(error))"
                 }
             }
         }

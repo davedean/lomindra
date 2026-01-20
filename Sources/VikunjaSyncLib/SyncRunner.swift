@@ -242,8 +242,41 @@ struct VikunjaProject: Decodable {
 }
 
 func vikunjaRequest(apiBase: String, token: String, method: String, path: String, body: [String: Any]?) throws -> Data {
+    let policy = VikunjaRetryPolicy()
     let delegate = InsecureSessionDelegate()
     let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    var lastError: Error?
+
+    for attempt in 1...policy.maxAttempts {
+        do {
+            return try vikunjaRequestOnce(
+                session: session,
+                apiBase: apiBase,
+                token: token,
+                method: method,
+                path: path,
+                body: body
+            )
+        } catch {
+            lastError = error
+            if attempt < policy.maxAttempts, shouldRetryVikunjaRequest(error: error) {
+                let delay = policy.delay(forAttempt: attempt)
+                Thread.sleep(forTimeInterval: delay)
+                continue
+            }
+            throw error
+        }
+    }
+
+    throw lastError ?? NSError(domain: "vikunja", code: 1, userInfo: [NSLocalizedDescriptionKey: "Request failed after retries"])
+}
+
+private func vikunjaRequestOnce(session: URLSession,
+                                apiBase: String,
+                                token: String,
+                                method: String,
+                                path: String,
+                                body: [String: Any]?) throws -> Data {
     let url = URL(string: "\(apiBase)\(path)")!
     var request = URLRequest(url: url)
     request.httpMethod = method
@@ -264,7 +297,8 @@ func vikunjaRequest(apiBase: String, token: String, method: String, path: String
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let code = (response as? HTTPURLResponse)?.statusCode ?? -1
             let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-            result = .failure(NSError(domain: "vikunja", code: code, userInfo: [NSLocalizedDescriptionKey: "Bad response: \(bodyText)"]))
+            let safeBody = redactSensitive(bodyText, token: token)
+            result = .failure(NSError(domain: "vikunja", code: code, userInfo: [NSLocalizedDescriptionKey: "Bad response: \(safeBody)"]))
             return
         }
         result = .success(data ?? Data())
