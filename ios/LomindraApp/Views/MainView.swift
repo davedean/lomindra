@@ -3,6 +3,8 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @State private var showLogin = false
+    @State private var latestLogURL: URL?
+    @State private var shareItem: ShareItem?
 
     private var isSignedIn: Bool {
         appState.token?.isEmpty == false
@@ -36,6 +38,15 @@ struct MainView: View {
                                 showLogin = true
                             }
                         }
+                        Divider()
+                        if let latestLogURL = latestLogURL {
+                            Button("Download Sync Log") {
+                                shareItem = ShareItem(url: latestLogURL)
+                            }
+                        } else {
+                            Button("No Sync Logs Yet") {}
+                                .disabled(true)
+                        }
                     } label: {
                         Image(systemName: "gearshape")
                     }
@@ -47,10 +58,23 @@ struct MainView: View {
                 LoginView()
             }
         }
+        .sheet(item: $shareItem) { item in
+            ShareSheet(activityItems: [item.url])
+        }
         .onChange(of: appState.token) { token in
             if let token = token, !token.isEmpty {
                 showLogin = false
             }
         }
+        .onAppear {
+            refreshLatestLog()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: SyncLogStore.logUpdatedNotification)) { _ in
+            refreshLatestLog()
+        }
+    }
+
+    private func refreshLatestLog() {
+        latestLogURL = SyncLogStore.latestLogURL()
     }
 }

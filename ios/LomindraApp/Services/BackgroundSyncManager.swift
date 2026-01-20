@@ -171,6 +171,7 @@ final class BackgroundSyncManager {
 
     private func performSync() async -> BackgroundSyncStatus {
         let start = Date()
+        var logURL: URL?
         do {
             guard let settings = settingsStore.load() else {
                 throw NSError(domain: "sync", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing settings"])
@@ -178,6 +179,8 @@ final class BackgroundSyncManager {
             guard settings.backgroundSyncEnabled else {
                 throw NSError(domain: "sync", code: 2, userInfo: [NSLocalizedDescriptionKey: "Background sync disabled"])
             }
+            logURL = SyncLogStore.startLog(mode: .apply, settings: settings, source: "background")
+            SyncLogStore.append("Background sync started.", to: logURL)
             guard let token = keychainStore.readToken(), !token.isEmpty else {
                 throw NSError(domain: "sync", code: 3, userInfo: [NSLocalizedDescriptionKey: "Missing API token"])
             }
@@ -198,6 +201,12 @@ final class BackgroundSyncManager {
                 try? FileManager.default.removeItem(atPath: path)
                 savedReportPath = nil
             }
+            SyncLogStore.append("Summary: \(summaryDetails(result.summary))", to: logURL)
+            if let reportPath = savedReportPath {
+                SyncLogStore.append("Conflict report path: \(reportPath)", to: logURL)
+            }
+            SyncLogStore.append("Background sync finished successfully.", to: logURL)
+            SyncLogStore.notifyUpdated()
             return BackgroundSyncStatus(
                 lastRun: start,
                 success: true,
@@ -206,6 +215,8 @@ final class BackgroundSyncManager {
                 reportPath: savedReportPath
             )
         } catch {
+            SyncLogStore.append("Background sync failed: \(ErrorPresenter.userMessage(error))", to: logURL)
+            SyncLogStore.notifyUpdated()
             return BackgroundSyncStatus(
                 lastRun: start,
                 success: false,
@@ -225,6 +236,19 @@ final class BackgroundSyncManager {
             return "Conflicts detected (\(summary.conflicts))."
         }
         return "Sync complete."
+    }
+
+    private func summaryDetails(_ summary: SyncSummary) -> String {
+        return [
+            "lists=\(summary.listsProcessed)",
+            "createdVikunja=\(summary.createdInVikunja)",
+            "createdReminders=\(summary.createdInReminders)",
+            "updatedVikunja=\(summary.updatedVikunja)",
+            "updatedReminders=\(summary.updatedReminders)",
+            "deletedVikunja=\(summary.deletedVikunja)",
+            "deletedReminders=\(summary.deletedReminders)",
+            "conflicts=\(summary.conflicts)"
+        ].joined(separator: ", ")
     }
 
     private func permittedIdentifiers() -> [String] {

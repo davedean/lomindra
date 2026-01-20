@@ -151,6 +151,8 @@ struct SyncView: View {
         errorMessage = nil
         lastReportPath = nil
         statusMessage = "\(mode.label) in progress (apply=\(mode.isApply))..."
+        let logURL = SyncLogStore.startLog(mode: mode, settings: appState.settings, source: "manual")
+        SyncLogStore.append("Sync started.", to: logURL)
         do {
             guard let token = appState.token, !token.isEmpty else {
                 throw NSError(domain: "sync", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing API token"])
@@ -171,6 +173,13 @@ struct SyncView: View {
                             statusMessage = progress.message
                         }
                     }
+                    let message: String
+                    if let listTitle = progress.listTitle {
+                        message = "\(progress.message): \(listTitle)"
+                    } else {
+                        message = progress.message
+                    }
+                    SyncLogStore.append(message, to: logURL)
                 }
             )
             await MainActor.run {
@@ -186,6 +195,11 @@ struct SyncView: View {
                 }
                 finishedRunId = runId
             }
+            SyncLogStore.append("Summary: \(summaryDetails(result.summary))", to: logURL)
+            if let reportPath = result.reportPath {
+                SyncLogStore.append("Conflict report path: \(reportPath)", to: logURL)
+            }
+            SyncLogStore.append("Sync finished successfully.", to: logURL)
         } catch {
             await MainActor.run {
                 guard currentRunId == runId else { return }
@@ -193,12 +207,14 @@ struct SyncView: View {
                 statusMessage = "Sync failed."
                 finishedRunId = runId
             }
+            SyncLogStore.append("Sync failed: \(ErrorPresenter.userMessage(error))", to: logURL)
         }
         await MainActor.run {
             if currentRunId == runId {
                 isWorking = false
             }
         }
+        SyncLogStore.notifyUpdated()
     }
 
     private func summaryText(_ summary: SyncSummary) -> String {
@@ -206,6 +222,19 @@ struct SyncView: View {
             return "Conflicts detected (\(summary.conflicts)). Review to resolve."
         }
         return "Sync complete."
+    }
+
+    private func summaryDetails(_ summary: SyncSummary) -> String {
+        return [
+            "lists=\(summary.listsProcessed)",
+            "createdVikunja=\(summary.createdInVikunja)",
+            "createdReminders=\(summary.createdInReminders)",
+            "updatedVikunja=\(summary.updatedVikunja)",
+            "updatedReminders=\(summary.updatedReminders)",
+            "deletedVikunja=\(summary.deletedVikunja)",
+            "deletedReminders=\(summary.deletedReminders)",
+            "conflicts=\(summary.conflicts)"
+        ].joined(separator: ", ")
     }
 
     private func prepareApply() {
