@@ -1,5 +1,17 @@
 # Lomindra
 
+⚠️ **DANGER: THIS IS PRE-ALPHA SOFTWARE** ⚠️
+
+**IF YOU USE THIS SOFTWARE, YOU SHOULD ASSUME IT WILL:**
+- Fail to do what you want
+- Destroy your existing data in both Apple Reminders and Vikunja
+- Brick your devices or otherwise cause irreparable harm
+- Lose your data permanently
+
+**This is early development software with NO safety guarantees.** Run at your own risk. Do not use this on production data or critical tasks. Back up everything before attempting to use it.
+
+---
+
 Two-way sync between Apple Reminders and Vikunja, with:
 - Swift Package core sync engine
 - macOS CLI utilities and probes
