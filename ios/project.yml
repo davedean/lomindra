@@ -21,6 +21,9 @@ targets:
         NSRemindersUsageDescription: Reminders access is required to sync tasks.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         UIBackgroundModes:
           - fetch
     settings:
