@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
 
     @State private var apiBase: String = ""
     @State private var username: String = ""
@@ -37,6 +38,13 @@ struct LoginView: View {
             }
         }
         .navigationTitle("Sign In")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Close") {
+                    dismiss()
+                }
+            }
+        }
         .onAppear {
             apiBase = appState.settings.apiBase
         }

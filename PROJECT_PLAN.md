@@ -89,6 +89,7 @@ Deliverable: multi-list sync with selectable lists + roadmap for iOS app.
 - Allow limited app usage without Vikunja sign-in; replace Vikunja-backed screens with a "sign in to Vikunja" prompt and disable actions clearly.
 - Hide Sign Out behind a settings menu (gear or hamburger) to avoid accidental sign-out.
 - Consider removing Dry Run button for most users; keep it as a debug-only option if needed.
+  - Status: app is usable without sign-in, sign-in prompts added, Sign Out moved into settings menu, Dry Run now debug-only. (done)
 
 Deliverable: working iOS MVP with manual sync.
 
