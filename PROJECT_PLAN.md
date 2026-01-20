@@ -96,7 +96,7 @@ Deliverable: working iOS MVP with manual sync.
 ## Phase 7: iOS Reliability
 - Background sync (BGAppRefreshTask; BGProcessingTask if needed later). (done)
 - Conflict review UI with per-conflict resolution. (done)
-- Error handling, retry/backoff, and safe logging.
+- Error handling, retry/backoff, and safe logging. (done)
 - Simplify sync output: "Sync complete" on success; hide conflict log links unless conflicts exist. (done)
 - When sync fails, prefer user-focused error summaries and optionally provide a "request support" action that shares a redacted log.
 
