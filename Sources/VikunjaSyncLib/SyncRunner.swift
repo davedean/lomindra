@@ -1,3 +1,4 @@
+#if canImport(EventKit)
 import EventKit
 import Foundation
 import SQLite3
@@ -1550,3 +1551,4 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
     progress?(SyncProgress(message: "Sync complete", listTitle: nil))
     return summary
 }
+#endif
