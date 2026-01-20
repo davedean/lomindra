@@ -15,8 +15,8 @@ jobs:
       - name: Build (iOS Simulator)
         run: |
           xcodebuild \
-            -project ios/VikunjaRemindersApp.xcodeproj \
-            -scheme VikunjaRemindersApp \
+            -project ios/LomindraApp.xcodeproj \
+            -scheme LomindraApp \
             -configuration Debug \
             -sdk iphonesimulator \
             build

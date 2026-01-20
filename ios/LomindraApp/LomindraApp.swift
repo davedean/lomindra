@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct VikunjaRemindersApp: App {
+struct LomindraApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var appState = AppState()
 

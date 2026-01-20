@@ -1,4 +1,4 @@
-# Project Plan: Apple Reminders <-> Vikunja Sync
+# Project Plan: Lomindra (Apple Reminders <-> Vikunja Sync)
 
 ## Goal
 Build a two-way sync between Apple Reminders and Vikunja, starting with a single list and expanding to full account coverage. The initial focus is on data model compatibility and API capabilities, not on a specific runtime.
