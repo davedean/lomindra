@@ -1,0 +1,35 @@
+# Build artifacts
+.build/
+.swiftpm/
+
+# Local config with secrets
+apple_details.txt
+vikunja_details.txt
+
+# SQLite database
+sync.db
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+
+# reports
+reports
+
+# env
+.env
+
+# Local binaries
+login_probe
+
+# macOS
+.DS_Store
+
+# Xcode/iOS build artifacts
+ios/DerivedData/
+ios/**/Build/
+ios/**/xcuserdata/
+ios/**/*.xcodeproj/project.xcworkspace/
+ios/**/*.xcworkspace/

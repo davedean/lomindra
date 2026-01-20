@@ -1,0 +1,42 @@
+name: VikunjaRemindersApp
+options:
+  bundleIdPrefix: com.vikunja
+packages:
+  VikunjaSyncLib:
+    path: ..
+
+targets:
+  VikunjaRemindersApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - VikunjaRemindersApp
+    info:
+      path: VikunjaRemindersApp/Info.plist
+      properties:
+        UILaunchStoryboardName: LaunchScreen
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.vikunja.reminders.refresh
+        NSRemindersUsageDescription: Reminders access is required to sync tasks.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UIBackgroundModes:
+          - fetch
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.vikunja.reminders
+    dependencies:
+      - package: VikunjaSyncLib
+        product: VikunjaSyncLib
+
+schemes:
+  VikunjaRemindersApp:
+    build:
+      targets:
+        VikunjaRemindersApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release

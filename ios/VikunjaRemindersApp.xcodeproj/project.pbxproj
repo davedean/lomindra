@@ -1,0 +1,425 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		04B99D1AF5F2E945E8BB12BA /* ConflictReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176B7A8B77C5F4465BEF265E /* ConflictReportView.swift */; };
+		1D132C685A22FA20DB0A6401 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D78A4694DC235A0B6CA1C2EF /* SettingsStore.swift */; };
+		1DD162A7E9D345FFDD0AEE9F /* VikunjaRemindersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10A4A16FDD597A886F11E45 /* VikunjaRemindersApp.swift */; };
+		26901F80879C683B830B4CF2 /* VikunjaSyncLib in Frameworks */ = {isa = PBXBuildFile; productRef = 948EE039E46885701607DFD8 /* VikunjaSyncLib */; };
+		26A73FF8D4739E1DF0FC3231 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BF4EF2F6F2E22BCF6AE1A283 /* LaunchScreen.storyboard */; };
+		27F7136A22ECAA22E25DA45E /* ListSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BC6EF813DE884449FC5A8D /* ListSelectionView.swift */; };
+		28D7EB82D5F76DEF080A736A /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CD6EDB823236E43F577E63 /* SyncView.swift */; };
+		51F2B04CF7A02DF683D383B0 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F92C49FF1CFDBA568ABC92 /* SyncCoordinator.swift */; };
+		5304BB9CDA4756937805B506 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CD9B6E08BF38D588DC603 /* KeychainStore.swift */; };
+		6FDC56830EA890EC6C32E311 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AA44A5081FEF4F947B063C /* AppSettings.swift */; };
+		A0E6D66F77B92E902FAC3C02 /* VikunjaAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC7AEE7C895F0B3BC7CBD9E /* VikunjaAPI.swift */; };
+		ACEA623AD47D5746755C01A5 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939780D8266E9E273A12068C /* MainView.swift */; };
+		BC221018596C34E2CD7C0C50 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26124F38E5537D179D932C0A /* LoginView.swift */; };
+		DE8CA349204F0405D17C7682 /* BackgroundSyncStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783AA5361EC9F84FCAD0EB71 /* BackgroundSyncStatusStore.swift */; };
+		E4AF92F347EF3EE305DF3AC2 /* BackgroundSyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BBCD161C9A7911AFE2478B8 /* BackgroundSyncStatus.swift */; };
+		E6055442725BC62A3971DAFB /* BackgroundSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207791AE23A301D37A614E8D /* BackgroundSyncManager.swift */; };
+		EB7CEE3CEEE63B3D19EFECEE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DDB7ABE28C8F2C8D9EC681 /* AppState.swift */; };
+		F6F7AE7E71DD92FC6D4BA205 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC5F776B1AAD5A72440018C /* RemindersService.swift */; };
+		FE41660737C7B0DCFAD0668F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4448AF7E2191C5864784681 /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		176B7A8B77C5F4465BEF265E /* ConflictReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictReportView.swift; sourceTree = "<group>"; };
+		207791AE23A301D37A614E8D /* BackgroundSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncManager.swift; sourceTree = "<group>"; };
+		26124F38E5537D179D932C0A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		46E1D27AD5954EC4F459DF59 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4BBCD161C9A7911AFE2478B8 /* BackgroundSyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatus.swift; sourceTree = "<group>"; };
+		56DDB7ABE28C8F2C8D9EC681 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		58BC6EF813DE884449FC5A8D /* ListSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListSelectionView.swift; sourceTree = "<group>"; };
+		783AA5361EC9F84FCAD0EB71 /* BackgroundSyncStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatusStore.swift; sourceTree = "<group>"; };
+		7EEA51D86377FB94D986CA85 /* vikunja_reminders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vikunja_reminders; path = ..; sourceTree = SOURCE_ROOT; };
+		87CD6EDB823236E43F577E63 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
+		939780D8266E9E273A12068C /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		9EC5F776B1AAD5A72440018C /* RemindersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
+		A17CD9B6E08BF38D588DC603 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		B0AA44A5081FEF4F947B063C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		B0F92C49FF1CFDBA568ABC92 /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
+		B4448AF7E2191C5864784681 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		BA92471D510E008E1AF0E87D /* VikunjaRemindersApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VikunjaRemindersApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF4EF2F6F2E22BCF6AE1A283 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D78A4694DC235A0B6CA1C2EF /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		EBC7AEE7C895F0B3BC7CBD9E /* VikunjaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VikunjaAPI.swift; sourceTree = "<group>"; };
+		F10A4A16FDD597A886F11E45 /* VikunjaRemindersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VikunjaRemindersApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		035038EE0B5697DEA6227688 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				26901F80879C683B830B4CF2 /* VikunjaSyncLib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		23A773C15FFB2EFBCBAEBAA2 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				176B7A8B77C5F4465BEF265E /* ConflictReportView.swift */,
+				58BC6EF813DE884449FC5A8D /* ListSelectionView.swift */,
+				26124F38E5537D179D932C0A /* LoginView.swift */,
+				939780D8266E9E273A12068C /* MainView.swift */,
+				B4448AF7E2191C5864784681 /* RootView.swift */,
+				87CD6EDB823236E43F577E63 /* SyncView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		38C05D2195CF8B1CC7EBBAA1 /* VikunjaRemindersApp */ = {
+			isa = PBXGroup;
+			children = (
+				46E1D27AD5954EC4F459DF59 /* Info.plist */,
+				BF4EF2F6F2E22BCF6AE1A283 /* LaunchScreen.storyboard */,
+				F10A4A16FDD597A886F11E45 /* VikunjaRemindersApp.swift */,
+				A006DBD681AB9BDEC06D5241 /* Models */,
+				60F4809CCAE924E2F681D97F /* Services */,
+				23A773C15FFB2EFBCBAEBAA2 /* Views */,
+			);
+			path = VikunjaRemindersApp;
+			sourceTree = "<group>";
+		};
+		47140E9BF8FE6C4F769B7993 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				7EEA51D86377FB94D986CA85 /* vikunja_reminders */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		4A683FDCB52DCBD3A2883504 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BA92471D510E008E1AF0E87D /* VikunjaRemindersApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		60F4809CCAE924E2F681D97F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				207791AE23A301D37A614E8D /* BackgroundSyncManager.swift */,
+				783AA5361EC9F84FCAD0EB71 /* BackgroundSyncStatusStore.swift */,
+				A17CD9B6E08BF38D588DC603 /* KeychainStore.swift */,
+				9EC5F776B1AAD5A72440018C /* RemindersService.swift */,
+				D78A4694DC235A0B6CA1C2EF /* SettingsStore.swift */,
+				B0F92C49FF1CFDBA568ABC92 /* SyncCoordinator.swift */,
+				EBC7AEE7C895F0B3BC7CBD9E /* VikunjaAPI.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A006DBD681AB9BDEC06D5241 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B0AA44A5081FEF4F947B063C /* AppSettings.swift */,
+				56DDB7ABE28C8F2C8D9EC681 /* AppState.swift */,
+				4BBCD161C9A7911AFE2478B8 /* BackgroundSyncStatus.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E7BBB6F1AFA8E9227F0123D5 = {
+			isa = PBXGroup;
+			children = (
+				47140E9BF8FE6C4F769B7993 /* Packages */,
+				38C05D2195CF8B1CC7EBBAA1 /* VikunjaRemindersApp */,
+				4A683FDCB52DCBD3A2883504 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AEF5D8B517F9BBEB4D3555BB /* VikunjaRemindersApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9D290C2CB35D01583D7EE371 /* Build configuration list for PBXNativeTarget "VikunjaRemindersApp" */;
+			buildPhases = (
+				E241051D29AA719E4FE76324 /* Sources */,
+				6BC5F21B63C43437B72D4A05 /* Resources */,
+				035038EE0B5697DEA6227688 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VikunjaRemindersApp;
+			packageProductDependencies = (
+				948EE039E46885701607DFD8 /* VikunjaSyncLib */,
+			);
+			productName = VikunjaRemindersApp;
+			productReference = BA92471D510E008E1AF0E87D /* VikunjaRemindersApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		73B28918CABF06A42970E637 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+			};
+			buildConfigurationList = 64A9D59B8495C8BFD43EFC35 /* Build configuration list for PBXProject "VikunjaRemindersApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E7BBB6F1AFA8E9227F0123D5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				09F7C75D9EE6B79D82F02F5D /* XCLocalSwiftPackageReference ".." */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AEF5D8B517F9BBEB4D3555BB /* VikunjaRemindersApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6BC5F21B63C43437B72D4A05 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				26A73FF8D4739E1DF0FC3231 /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E241051D29AA719E4FE76324 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FDC56830EA890EC6C32E311 /* AppSettings.swift in Sources */,
+				EB7CEE3CEEE63B3D19EFECEE /* AppState.swift in Sources */,
+				E6055442725BC62A3971DAFB /* BackgroundSyncManager.swift in Sources */,
+				E4AF92F347EF3EE305DF3AC2 /* BackgroundSyncStatus.swift in Sources */,
+				DE8CA349204F0405D17C7682 /* BackgroundSyncStatusStore.swift in Sources */,
+				04B99D1AF5F2E945E8BB12BA /* ConflictReportView.swift in Sources */,
+				5304BB9CDA4756937805B506 /* KeychainStore.swift in Sources */,
+				27F7136A22ECAA22E25DA45E /* ListSelectionView.swift in Sources */,
+				BC221018596C34E2CD7C0C50 /* LoginView.swift in Sources */,
+				ACEA623AD47D5746755C01A5 /* MainView.swift in Sources */,
+				F6F7AE7E71DD92FC6D4BA205 /* RemindersService.swift in Sources */,
+				FE41660737C7B0DCFAD0668F /* RootView.swift in Sources */,
+				1D132C685A22FA20DB0A6401 /* SettingsStore.swift in Sources */,
+				51F2B04CF7A02DF683D383B0 /* SyncCoordinator.swift in Sources */,
+				28D7EB82D5F76DEF080A736A /* SyncView.swift in Sources */,
+				A0E6D66F77B92E902FAC3C02 /* VikunjaAPI.swift in Sources */,
+				1DD162A7E9D345FFDD0AEE9F /* VikunjaRemindersApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		05154127151F4D130016A2BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 34QPHVHXF7;
+				INFOPLIST_FILE = VikunjaRemindersApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vikunja.reminders;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		690E3A64184830E6F9B5D30A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 34QPHVHXF7;
+				INFOPLIST_FILE = VikunjaRemindersApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vikunja.reminders;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BE19251582464B47CA34CA20 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D89C2A0683597BC5AF8E91F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		64A9D59B8495C8BFD43EFC35 /* Build configuration list for PBXProject "VikunjaRemindersApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D89C2A0683597BC5AF8E91F1 /* Debug */,
+				BE19251582464B47CA34CA20 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9D290C2CB35D01583D7EE371 /* Build configuration list for PBXNativeTarget "VikunjaRemindersApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				05154127151F4D130016A2BF /* Debug */,
+				690E3A64184830E6F9B5D30A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		09F7C75D9EE6B79D82F02F5D /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		948EE039E46885701607DFD8 /* VikunjaSyncLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VikunjaSyncLib;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 73B28918CABF06A42970E637 /* Project object */;
+}
