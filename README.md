@@ -1,4 +1,4 @@
-# Vikunja Reminders Sync
+# Lomindra
 
 Two-way sync between Apple Reminders and Vikunja, with:
 - Swift Package core sync engine
@@ -37,7 +37,7 @@ swift run mvp_sync --apply
 ## iOS app
 Open the Xcode project:
 ```bash
-open ios/VikunjaRemindersApp.xcodeproj
+open ios/LomindraApp.xcodeproj
 ```
 
 Notes:

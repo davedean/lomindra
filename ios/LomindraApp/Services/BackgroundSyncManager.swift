@@ -6,7 +6,7 @@ import VikunjaSyncLib
 final class BackgroundSyncManager {
     static let shared = BackgroundSyncManager()
 
-    private let refreshTaskId = "com.vikunja.reminders.refresh"
+    private let refreshTaskId = "com.lomindra.reminders.refresh"
     private let defaultInterval: TimeInterval = 6 * 60 * 60
     private let settingsStore = SettingsStore()
     private let keychainStore = KeychainStore()

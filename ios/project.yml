@@ -1,39 +1,40 @@
-name: VikunjaRemindersApp
+name: LomindraApp
 options:
-  bundleIdPrefix: com.vikunja
+  bundleIdPrefix: com.lomindra
 packages:
   VikunjaSyncLib:
     path: ..
 
 targets:
-  VikunjaRemindersApp:
+  LomindraApp:
     type: application
     platform: iOS
     deploymentTarget: "15.0"
     sources:
-      - VikunjaRemindersApp
+      - LomindraApp
     info:
-      path: VikunjaRemindersApp/Info.plist
+      path: LomindraApp/Info.plist
       properties:
         UILaunchStoryboardName: LaunchScreen
         BGTaskSchedulerPermittedIdentifiers:
-          - com.vikunja.reminders.refresh
+          - com.lomindra.reminders.refresh
         NSRemindersUsageDescription: Reminders access is required to sync tasks.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
         UIBackgroundModes:
           - fetch
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.vikunja.reminders
+      PRODUCT_NAME: Lomindra
+      PRODUCT_BUNDLE_IDENTIFIER: com.lomindra.reminders
     dependencies:
       - package: VikunjaSyncLib
         product: VikunjaSyncLib
 
 schemes:
-  VikunjaRemindersApp:
+  LomindraApp:
     build:
       targets:
-        VikunjaRemindersApp: all
+        LomindraApp: all
     run:
       config: Debug
     test:
