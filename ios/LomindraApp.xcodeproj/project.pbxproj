@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -52,7 +52,7 @@
 		E99EB941E105043AAE0F3915 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		EADE63404DF7F01A04C423EB /* ErrorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPresenter.swift; sourceTree = "<group>"; };
 		F601059000D5B1EE7781D80E /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		F6D97ACFEA5F26E60955E827 /* Lomindra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lomindra.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6D97ACFEA5F26E60955E827 /* LomindraApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LomindraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F95C63607155D9108AB6744D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -140,7 +140,7 @@
 		C7436D69D0F44AF6C6013CFF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F6D97ACFEA5F26E60955E827 /* Lomindra.app */,
+				F6D97ACFEA5F26E60955E827 /* LomindraApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -165,7 +165,7 @@
 				D4DB2ACBD995EA5514068E6F /* VikunjaSyncLib */,
 			);
 			productName = LomindraApp;
-			productReference = F6D97ACFEA5F26E60955E827 /* Lomindra.app */;
+			productReference = F6D97ACFEA5F26E60955E827 /* LomindraApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -190,6 +190,7 @@
 			packageReferences = (
 				7995BA64D7EE6731EEB5F9E0 /* XCLocalSwiftPackageReference ".." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -244,7 +245,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 34QPHVHXF7;
 				INFOPLIST_FILE = LomindraApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -380,7 +380,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 34QPHVHXF7;
 				INFOPLIST_FILE = LomindraApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
