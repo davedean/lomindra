@@ -23,7 +23,7 @@ struct MainView: View {
                 ListSelectionView(showLogin: $showLogin)
                 SyncView(showLogin: $showLogin)
             }
-            .navigationTitle("Vikunja Sync")
+            .navigationTitle("Lomindra")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
