@@ -29,7 +29,7 @@
 - Remaining optional enhancements: seed-only filter, richer recurrence support, conflict detail output options.
 
 ## Latest Updates
-- Added iOS app scaffolding in `ios/VikunjaRemindersApp` with login, list selection, and sync UI.
+- Added iOS app scaffolding in `ios/LomindraApp` with login, list selection, and sync UI.
 - Implemented Vikunja login fallbacks for token creation and response decoding in the iOS client.
 - Filtered Reminders lists to standard, writable lists and added per-list sync toggles with project mapping.
 - Added `scripts/login_probe.swift` for API login checks using env vars.

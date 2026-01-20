@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEF5D8B517F9BBEB4D3555BB"
-               BuildableName = "VikunjaRemindersApp.app"
-               BlueprintName = "VikunjaRemindersApp"
-               ReferencedContainer = "container:VikunjaRemindersApp.xcodeproj">
+               BuildableName = "Lomindra.app"
+               BlueprintName = "LomindraApp"
+               ReferencedContainer = "container:LomindraApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEF5D8B517F9BBEB4D3555BB"
-            BuildableName = "VikunjaRemindersApp.app"
-            BlueprintName = "VikunjaRemindersApp"
-            ReferencedContainer = "container:VikunjaRemindersApp.xcodeproj">
+            BuildableName = "Lomindra.app"
+            BlueprintName = "LomindraApp"
+            ReferencedContainer = "container:LomindraApp.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,9 +58,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEF5D8B517F9BBEB4D3555BB"
-            BuildableName = "VikunjaRemindersApp.app"
-            BlueprintName = "VikunjaRemindersApp"
-            ReferencedContainer = "container:VikunjaRemindersApp.xcodeproj">
+            BuildableName = "Lomindra.app"
+            BlueprintName = "LomindraApp"
+            ReferencedContainer = "container:LomindraApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -77,9 +77,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEF5D8B517F9BBEB4D3555BB"
-            BuildableName = "VikunjaRemindersApp.app"
-            BlueprintName = "VikunjaRemindersApp"
-            ReferencedContainer = "container:VikunjaRemindersApp.xcodeproj">
+            BuildableName = "Lomindra.app"
+            BlueprintName = "LomindraApp"
+            ReferencedContainer = "container:LomindraApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
