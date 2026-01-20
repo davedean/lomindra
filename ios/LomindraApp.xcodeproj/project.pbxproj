@@ -17,6 +17,7 @@
 		83AB81F09C6DBD379337EB04 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB30C3B4DFEC66B54EE0E4C /* RemindersService.swift */; };
 		9A6B31AE540812220CB3C2A6 /* ListSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F1A00DAE1AD9643FBDE7C9 /* ListSelectionView.swift */; };
 		ADDB836FCA684B6CF63B0C87 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C63607155D9108AB6744D /* AppState.swift */; };
+		D2C528351A604EEF900D183B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */; };
 		AF13A707F8169C23CE7DD0D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 41719055C52BCD7907890F02 /* LaunchScreen.storyboard */; };
 		B857E5813990461CC2AC5F25 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */; };
 		BB7E1209F0091F5739F83EDF /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4DC1DF80BFA4F99EFCBF48 /* KeychainStore.swift */; };
@@ -34,6 +35,7 @@
 		1582CA11757A23D68E47E250 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		24D847E69F4137EF54DF5EC3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		263E8B199DC45A98C0650D0C /* BackgroundSyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatus.swift; sourceTree = "<group>"; };
+		3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		41719055C52BCD7907890F02 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4324970825DFC1E00D6BAA6A /* VikunjaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VikunjaAPI.swift; sourceTree = "<group>"; };
 		44CEE1C3EA44C9B2594D58FA /* BackgroundSyncStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatusStore.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 			children = (
 				24D847E69F4137EF54DF5EC3 /* Info.plist */,
 				41719055C52BCD7907890F02 /* LaunchScreen.storyboard */,
+				3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */,
 				B0C23CDD5E08494FB0E6F234 /* LomindraApp.swift */,
 				2E6BDFB85D03FAE2C5A448A4 /* Models */,
 				8C6F36EA5525D219D46177C0 /* Services */,
@@ -203,6 +206,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2C528351A604EEF900D183B /* Assets.xcassets in Resources */,
 				AF13A707F8169C23CE7DD0D1 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
