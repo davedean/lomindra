@@ -5,6 +5,7 @@ import VikunjaSyncLib
 
 struct SyncView: View {
     @EnvironmentObject var appState: AppState
+    @Binding var showLogin: Bool
 
     private let syncCoordinator = SyncCoordinator()
     private let backgroundStatusStore = BackgroundSyncStatusStore()
@@ -21,11 +22,24 @@ struct SyncView: View {
     @State private var backgroundStatus: BackgroundSyncStatus?
     @State private var pendingRequestsCount: Int?
 
+    private var isSignedIn: Bool {
+        appState.token?.isEmpty == false
+    }
+
     var body: some View {
         Group {
             Section(header: Text("Sync")) {
                 Text(statusMessage)
                     .foregroundColor(.secondary)
+                if !isSignedIn {
+                    Text("Sign in to Vikunja to run sync.")
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                    Button("Sign In") {
+                        showLogin = true
+                    }
+                    .font(.footnote)
+                }
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -38,12 +52,14 @@ struct SyncView: View {
                         ConflictReportView(reportPath: lastReportPath)
                     }
                 }
+#if DEBUG
                 Button("Dry Run") {
                     statusMessage = "Dry run tapped (apply=false)"
                     Task { await runSync(mode: .dryRun) }
                 }
                 .buttonStyle(.bordered)
                 .disabled(isWorking || !canSync)
+#endif
                 Button("Apply") {
                     statusMessage = "Apply tapped (apply=true)"
                     prepareApply()
@@ -53,25 +69,34 @@ struct SyncView: View {
             }
             Section(header: Text("Background")) {
                 Toggle("Enable background sync", isOn: backgroundSyncBinding)
+                    .disabled(!isSignedIn)
+                if !isSignedIn {
+                    Text("Sign in to enable background sync.")
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                }
 #if DEBUG
-                Button("Schedule Background Refresh") {
-                    BackgroundSyncManager.shared.scheduleAppRefresh {
+                Group {
+                    Button("Schedule Background Refresh") {
+                        BackgroundSyncManager.shared.scheduleAppRefresh {
+                            backgroundStatus = backgroundStatusStore.load()
+                            refreshPendingCount()
+                        }
+                    }
+                    Button("Run Background Sync Now") {
+                        Task {
+                            await BackgroundSyncManager.shared.runSyncNow()
+                            backgroundStatus = backgroundStatusStore.load()
+                            refreshPendingCount()
+                        }
+                    }
+                    Button("Clear Background Tasks") {
+                        BackgroundSyncManager.shared.clearAllTaskRequests()
                         backgroundStatus = backgroundStatusStore.load()
                         refreshPendingCount()
                     }
                 }
-                Button("Run Background Sync Now") {
-                    Task {
-                        await BackgroundSyncManager.shared.runSyncNow()
-                        backgroundStatus = backgroundStatusStore.load()
-                        refreshPendingCount()
-                    }
-                }
-                Button("Clear Background Tasks") {
-                    BackgroundSyncManager.shared.clearAllTaskRequests()
-                    backgroundStatus = backgroundStatusStore.load()
-                    refreshPendingCount()
-                }
+                .disabled(!isSignedIn)
 #endif
                 Text(pendingRequestsText)
                     .foregroundColor(.secondary)
@@ -112,7 +137,7 @@ struct SyncView: View {
     }
 
     private var canSync: Bool {
-        guard let token = appState.token, !token.isEmpty else { return false }
+        guard isSignedIn else { return false }
         let apiBase = appState.settings.apiBase.trimmingCharacters(in: .whitespacesAndNewlines)
         if apiBase.isEmpty { return false }
         return !appState.settings.selectedRemindersIds.isEmpty

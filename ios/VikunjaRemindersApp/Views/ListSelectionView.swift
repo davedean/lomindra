@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ListSelectionView: View {
     @EnvironmentObject var appState: AppState
+    @Binding var showLogin: Bool
 
     @State private var remindersLists: [RemindersList] = []
     @State private var projects: [VikunjaProject] = []
@@ -10,9 +11,12 @@ struct ListSelectionView: View {
     @State private var projectError: String?
     @State private var selectedReminders: Set<String> = []
     @State private var projectOverrides: [String: Int] = [:]
-    @State private var activeProjectPicker: RemindersList?
+    @State private var activeProjectPicker: ProjectPickerTarget?
 
     private let remindersService = RemindersService()
+    private var isSignedIn: Bool {
+        appState.token?.isEmpty == false
+    }
 
     var body: some View {
         Section(header: Text("Lists")) {
@@ -23,10 +27,17 @@ struct ListSelectionView: View {
                         Text(mappingText(for: list))
                             .font(.footnote)
                             .foregroundColor(.secondary)
-                        Button("Choose project") {
-                            activeProjectPicker = list
+                        if isSignedIn {
+                            Button("Choose project") {
+                                activeProjectPicker = ProjectPickerTarget(id: list.id)
+                            }
+                            .font(.footnote)
+                        } else {
+                            Button("Sign in to choose project") {
+                                showLogin = true
+                            }
+                            .font(.footnote)
                         }
-                        .font(.footnote)
                     }
                 }
             }
@@ -43,7 +54,7 @@ struct ListSelectionView: View {
                 Text(projectError)
                     .foregroundColor(.red)
                     .font(.footnote)
-            } else if appState.token == nil || (appState.token?.isEmpty ?? true) {
+            } else if !isSignedIn {
                 Text("Sign in to load Vikunja projects.")
                     .foregroundColor(.secondary)
                     .font(.footnote)
@@ -65,18 +76,23 @@ struct ListSelectionView: View {
             projectOverrides = appState.settings.projectOverrides
             Task { await loadLists() }
         }
-        .sheet(item: $activeProjectPicker) { list in
-            ProjectPickerView(
-                list: list,
-                projects: projects,
-                selectedProjectId: projectOverrides[list.id]
-            ) { selection in
-                if let selection = selection {
-                    projectOverrides[list.id] = selection
-                } else {
-                    projectOverrides.removeValue(forKey: list.id)
+        .sheet(item: $activeProjectPicker) { target in
+            if let list = remindersLists.first(where: { $0.id == target.id }) {
+                ProjectPickerView(
+                    list: list,
+                    projects: projects,
+                    selectedProjectId: projectOverrides[list.id]
+                ) { selection in
+                    if let selection = selection {
+                        projectOverrides[list.id] = selection
+                    } else {
+                        projectOverrides.removeValue(forKey: list.id)
+                    }
+                    updateSettings()
                 }
-                updateSettings()
+            } else {
+                Text("List unavailable.")
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -149,6 +165,9 @@ struct ListSelectionView: View {
             }
             return "Mapped to: Project \(overrideId) (manual)"
         }
+        if !isSignedIn {
+            return "Sign in to load projects and match."
+        }
         if projects.isEmpty {
             return "Projects not loaded; reload lists to match."
         }
@@ -194,4 +213,8 @@ private struct ProjectPickerView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+}
+
+private struct ProjectPickerTarget: Identifiable {
+    let id: String
 }
