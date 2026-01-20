@@ -175,8 +175,15 @@ struct SyncView: View {
             )
             await MainActor.run {
                 guard currentRunId == runId else { return }
-                statusMessage = summaryText(result.summary, modeLabel: mode.label, apply: mode.isApply)
-                lastReportPath = result.reportPath
+                statusMessage = summaryText(result.summary)
+                if result.summary.conflicts > 0 {
+                    lastReportPath = result.reportPath
+                } else {
+                    lastReportPath = nil
+                    if let reportPath = result.reportPath {
+                        try? FileManager.default.removeItem(atPath: reportPath)
+                    }
+                }
                 finishedRunId = runId
             }
         } catch {
@@ -194,8 +201,11 @@ struct SyncView: View {
         }
     }
 
-    private func summaryText(_ summary: SyncSummary, modeLabel: String, apply: Bool) -> String {
-        return "\(modeLabel) (apply=\(apply)): lists=\(summary.listsProcessed), createVikunja=\(summary.createdInVikunja), createReminders=\(summary.createdInReminders), updateVikunja=\(summary.updatedVikunja), updateReminders=\(summary.updatedReminders), deleteVikunja=\(summary.deletedVikunja), deleteReminders=\(summary.deletedReminders), conflicts=\(summary.conflicts)"
+    private func summaryText(_ summary: SyncSummary) -> String {
+        if summary.conflicts > 0 {
+            return "Conflicts detected (\(summary.conflicts)). Review to resolve."
+        }
+        return "Sync complete."
     }
 
     private func prepareApply() {
@@ -277,6 +287,7 @@ struct SyncView: View {
         }
         return "Pending background requests: unknown"
     }
+
 
     private func refreshPendingCount() {
         BGTaskScheduler.shared.getPendingTaskRequests { requests in

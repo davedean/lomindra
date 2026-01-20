@@ -11,7 +11,8 @@ struct ListSelectionView: View {
     @State private var projectError: String?
     @State private var selectedReminders: Set<String> = []
     @State private var projectOverrides: [String: Int] = [:]
-    @State private var activeProjectPicker: ProjectPickerTarget?
+    @State private var activeProjectPickerId: String?
+    @State private var isProjectPickerPresented = false
 
     private let remindersService = RemindersService()
     private var isSignedIn: Bool {
@@ -29,7 +30,7 @@ struct ListSelectionView: View {
                             .foregroundColor(.secondary)
                         if isSignedIn {
                             Button("Choose project") {
-                                activeProjectPicker = ProjectPickerTarget(id: list.id)
+                                presentProjectPicker(for: list.id)
                             }
                             .font(.footnote)
                         } else {
@@ -76,8 +77,10 @@ struct ListSelectionView: View {
             projectOverrides = appState.settings.projectOverrides
             Task { await loadLists() }
         }
-        .sheet(item: $activeProjectPicker) { target in
-            if let list = remindersLists.first(where: { $0.id == target.id }) {
+        .sheet(isPresented: $isProjectPickerPresented, onDismiss: {
+            activeProjectPickerId = nil
+        }) {
+            if let targetId = activeProjectPickerId, let list = remindersLists.first(where: { $0.id == targetId }) {
                 ProjectPickerView(
                     list: list,
                     projects: projects,
@@ -93,6 +96,12 @@ struct ListSelectionView: View {
             } else {
                 Text("List unavailable.")
                     .foregroundColor(.secondary)
+            }
+        }
+        .onChange(of: showLogin) { isShowing in
+            if isShowing {
+                isProjectPickerPresented = false
+                activeProjectPickerId = nil
             }
         }
     }
@@ -171,10 +180,41 @@ struct ListSelectionView: View {
         if projects.isEmpty {
             return "Projects not loaded; reload lists to match."
         }
-        if let match = projects.first(where: { $0.title.caseInsensitiveCompare(list.title) == .orderedSame }) {
+        let normalizedList = normalizedTitle(list.title)
+        if let match = projects.first(where: { normalizedTitle($0.title) == normalizedList }) {
             return "Auto-match: \(match.title)"
         }
         return "No match; will create project on apply."
+    }
+
+    private func presentProjectPicker(for listId: String) {
+        guard !isProjectPickerPresented else { return }
+        guard !showLogin else { return }
+        activeProjectPickerId = listId
+        DispatchQueue.main.async {
+            guard !isProjectPickerPresented, !showLogin else { return }
+            isProjectPickerPresented = true
+        }
+    }
+
+    private func normalizedTitle(_ title: String) -> String {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = trimmed.precomposedStringWithCanonicalMapping.lowercased()
+        var scalars: [UnicodeScalar] = []
+        scalars.reserveCapacity(normalized.unicodeScalars.count)
+        var lastWasSpace = false
+        for scalar in normalized.unicodeScalars {
+            if scalar.properties.isWhitespace {
+                if !lastWasSpace {
+                    scalars.append(" ")
+                    lastWasSpace = true
+                }
+            } else {
+                scalars.append(scalar)
+                lastWasSpace = false
+            }
+        }
+        return String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
@@ -213,8 +253,4 @@ private struct ProjectPickerView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-}
-
-private struct ProjectPickerTarget: Identifiable {
-    let id: String
 }

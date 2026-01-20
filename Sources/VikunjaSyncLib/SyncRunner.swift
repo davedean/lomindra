@@ -11,6 +11,16 @@ public enum ConflictResolution: String {
     case lastWriteWins = "last-write-wins"
 }
 
+public struct ConflictKey: Hashable {
+    public let remindersId: String
+    public let vikunjaId: String
+
+    public init(remindersId: String, vikunjaId: String) {
+        self.remindersId = remindersId
+        self.vikunjaId = vikunjaId
+    }
+}
+
 public struct SyncProgress {
     public let message: String
     public let listTitle: String?
@@ -29,13 +39,15 @@ public struct SyncOptions {
     public let conflictReportPath: String?
     public let resolveConflicts: ConflictResolution
     public let progress: SyncProgressHandler?
+    public let conflictResolutions: [ConflictKey: ConflictResolution]
 
-    public init(apply: Bool, allowConflicts: Bool, conflictReportPath: String?, resolveConflicts: ConflictResolution, progress: SyncProgressHandler? = nil) {
+    public init(apply: Bool, allowConflicts: Bool, conflictReportPath: String?, resolveConflicts: ConflictResolution, progress: SyncProgressHandler? = nil, conflictResolutions: [ConflictKey: ConflictResolution] = [:]) {
         self.apply = apply
         self.allowConflicts = allowConflicts
         self.conflictReportPath = conflictReportPath
         self.resolveConflicts = resolveConflicts
         self.progress = progress
+        self.conflictResolutions = conflictResolutions
     }
 }
 
@@ -373,9 +385,29 @@ func openSyncDb(path: String) throws -> OpaquePointer? {
         let errStr = String(cString: sqlite3_errstr(createRc))
         throw NSError(domain: "sqlite", code: Int(createRc), userInfo: [NSLocalizedDescriptionKey: "Create table failed (rc=\(createRc) \(errStr)): \(errMsg)"])
     }
-    let alterInferred = "ALTER TABLE task_sync_map ADD COLUMN inferred_due INTEGER DEFAULT 0;"
-    _ = sqlite3_exec(db, alterInferred, nil, nil, nil)
+    if !columnExists(db: db, table: "task_sync_map", column: "inferred_due") {
+        let alterInferred = "ALTER TABLE task_sync_map ADD COLUMN inferred_due INTEGER DEFAULT 0;"
+        _ = sqlite3_exec(db, alterInferred, nil, nil, nil)
+    }
     return db
+}
+
+func columnExists(db: OpaquePointer?, table: String, column: String) -> Bool {
+    let sql = "PRAGMA table_info(\(table));"
+    var stmt: OpaquePointer?
+    if sqlite3_prepare_v2(db, sql, -1, &stmt, nil) != SQLITE_OK {
+        return false
+    }
+    defer { sqlite3_finalize(stmt) }
+    while sqlite3_step(stmt) == SQLITE_ROW {
+        if let name = sqlite3_column_text(stmt, 1) {
+            let columnName = String(cString: name)
+            if columnName == column {
+                return true
+            }
+        }
+    }
+    return false
 }
 
 func loadSyncRecords(db: OpaquePointer?, listId: String?, projectId: Int?) throws -> [String: SyncRecord] {
@@ -756,6 +788,27 @@ func loadListMap(path: String?) throws -> [String: String] {
 }
 
 func resolveListMappings(config: Config, calendars: [EKCalendar], listMap: [String: String], apply: Bool) throws -> [ListMapping] {
+    func normalizedTitle(_ title: String) -> String {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = trimmed.precomposedStringWithCanonicalMapping.lowercased()
+        var scalars: [UnicodeScalar] = []
+        scalars.reserveCapacity(normalized.unicodeScalars.count)
+        var lastWasSpace = false
+        for scalar in normalized.unicodeScalars {
+            if scalar.properties.isWhitespace {
+                if !lastWasSpace {
+                    scalars.append(" ")
+                    lastWasSpace = true
+                }
+            } else {
+                scalars.append(scalar)
+                lastWasSpace = false
+            }
+        }
+        return String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    let debugListMatch = ProcessInfo.processInfo.environment["VIKUNJA_DEBUG_LIST_MATCH"] == "1"
+
     let useMap = !listMap.isEmpty
     if !config.syncAllLists && !useMap {
         guard let listId = config.remindersListId else {
@@ -772,14 +825,15 @@ func resolveListMappings(config: Config, calendars: [EKCalendar], listMap: [Stri
 
     let projects = try fetchVikunjaProjects(apiBase: config.vikunjaApiBase, token: config.vikunjaToken)
     let projectsById = Dictionary(uniqueKeysWithValues: projects.map { ($0.id, $0) })
-    let projectsByTitle = Dictionary(grouping: projects, by: { $0.title.lowercased() })
+    let projectsByTitle = Dictionary(grouping: projects, by: { normalizedTitle($0.title) })
     let calendarsById = Dictionary(uniqueKeysWithValues: calendars.map { ($0.calendarIdentifier, $0) })
 
     func mapValue(for calendar: EKCalendar) -> String? {
         if let value = listMap[calendar.calendarIdentifier] {
             return value
         }
-        let match = listMap.first { $0.key.caseInsensitiveCompare(calendar.title) == .orderedSame }
+        let normalizedCalendar = normalizedTitle(calendar.title)
+        let match = listMap.first { normalizedTitle($0.key) == normalizedCalendar }
         return match?.value
     }
 
@@ -812,7 +866,8 @@ func resolveListMappings(config: Config, calendars: [EKCalendar], listMap: [Stri
             }
         }
         if projectId == nil {
-            let candidates = projectsByTitle[projectTitle.lowercased()] ?? []
+            let normalizedProjectTitle = normalizedTitle(projectTitle)
+            let candidates = projectsByTitle[normalizedProjectTitle] ?? []
             if let existing = candidates.first {
                 if candidates.count > 1 {
                     print("Warning: Multiple projects named '\(projectTitle)'; using id \(existing.id)")
@@ -824,6 +879,17 @@ func resolveListMappings(config: Config, calendars: [EKCalendar], listMap: [Stri
                 projectTitle = created.title
                 print("Created Vikunja project '\(projectTitle)' -> \(created.id)")
             } else {
+                if debugListMatch {
+                    print("Debug: No project match for '\(projectTitle)' (normalized='\(normalizedProjectTitle)').")
+                    let sample = projects.prefix(12).map { project in
+                        "'\(project.title)' -> '\(normalizedTitle(project.title))'"
+                    }
+                    if !sample.isEmpty {
+                        print("Debug: Sample project titles: \(sample.joined(separator: ", "))")
+                    } else {
+                        print("Debug: No projects returned to match.")
+                    }
+                }
                 print("Note: Missing Vikunja project for '\(projectTitle)'; will create on apply")
             }
         }
@@ -845,6 +911,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
     let conflictReportPath = options.conflictReportPath
     let resolveConflicts = options.resolveConflicts
     let progress = options.progress
+    let conflictResolutions = options.conflictResolutions
     let db = try openSyncDb(path: config.syncDbPath)
     let store = try authorizedRemindersStore()
     let calendars = store.calendars(for: .reminder)
@@ -895,8 +962,18 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
         try syncConflicts(db: db, listId: mapping.remindersListId, projectId: mapping.vikunjaProjectId, conflicts: plan.conflicts)
         progress?(SyncProgress(message: "Computed plan", listTitle: mapping.remindersListTitle))
 
+        func conflictResolution(for pair: TaskPair) -> ConflictResolution {
+            let key = ConflictKey(remindersId: pair.reminders.id, vikunjaId: pair.vikunja.id)
+            return conflictResolutions[key] ?? .none
+        }
+
         if conflictReportPath != nil && !plan.conflicts.isEmpty {
+            let shouldFilterResolved = !conflictResolutions.isEmpty
             for pair in plan.conflicts {
+                let resolution = conflictResolution(for: pair)
+                if shouldFilterResolved && (resolution != .none || resolveConflicts != .none) {
+                    continue
+                }
                 let diffs = conflictFieldDiffs(reminders: pair.reminders, vikunja: pair.vikunja)
                 let item: [String: Any] = [
                     "reminders_list_id": mapping.remindersListId,
@@ -913,9 +990,11 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
 
         var conflictUpdatesToVikunja: [TaskPair] = []
         var conflictUpdatesToReminders: [TaskPair] = []
-        if resolveConflicts != .none {
+        if resolveConflicts != .none || !conflictResolutions.isEmpty {
             for pair in plan.conflicts {
-                switch resolveConflicts {
+                let resolution = conflictResolution(for: pair)
+                let decision = resolution == .none ? resolveConflicts : resolution
+                switch decision {
                 case .reminders:
                     conflictUpdatesToVikunja.append(pair)
                 case .vikunja:
@@ -949,7 +1028,8 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
         )
 
         if apply {
-            if !plan.conflicts.isEmpty && !allowConflicts && resolveConflicts == .none {
+            let unresolvedConflicts = plan.conflicts.filter { conflictResolution(for: $0) == .none }
+            if !unresolvedConflicts.isEmpty && !allowConflicts && resolveConflicts == .none {
                 throw NSError(domain: "sync", code: 3, userInfo: [NSLocalizedDescriptionKey: "Conflicts detected (\(plan.conflicts.count)). Re-run with --allow-conflicts or --resolve-conflicts=reminders|vikunja|last-write-wins."])
             }
             guard let projectId = mapping.vikunjaProjectId else {
