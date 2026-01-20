@@ -213,10 +213,67 @@ func vikunjaRequest(apiBase: String, token: String, method: String, path: String
     }
 }
 
+func vikunjaRequestWithResponse(apiBase: String, token: String, method: String, path: String, body: [String: Any]?) throws -> (Data, HTTPURLResponse) {
+    let delegate = InsecureSessionDelegate()
+    let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    let url = URL(string: "\(apiBase)\(path)")!
+    var request = URLRequest(url: url)
+    request.httpMethod = method
+    request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.addValue("application/json", forHTTPHeaderField: "Accept")
+    if let body = body {
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+    }
+    let semaphore = DispatchSemaphore(value: 0)
+    var result: Result<(Data, HTTPURLResponse), Error> = .failure(NSError(domain: "vikunja", code: 1))
+    let task = session.dataTask(with: request) { data, response, error in
+        defer { semaphore.signal() }
+        if let error = error {
+            result = .failure(error)
+            return
+        }
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+            result = .failure(NSError(domain: "vikunja", code: code, userInfo: [NSLocalizedDescriptionKey: "Bad response: \(bodyText)"]))
+            return
+        }
+        result = .success((data ?? Data(), http))
+    }
+    task.resume()
+    semaphore.wait()
+    switch result {
+    case .success(let payload):
+        return payload
+    case .failure(let error):
+        throw error
+    }
+}
+
 func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws -> [CommonTask] {
-    let data = try vikunjaRequest(apiBase: apiBase, token: token, method: "GET", path: "/projects/\(projectId)/tasks", body: nil)
-    let tasks = try JSONDecoder().decode([VikunjaTask].self, from: data)
-    return tasks.map {
+    var allTasks: [VikunjaTask] = []
+    var page = 1
+    var totalPages: Int?
+    while true {
+        let path = "/projects/\(projectId)/tasks?page=\(page)"
+        let (data, response) = try vikunjaRequestWithResponse(apiBase: apiBase, token: token, method: "GET", path: path, body: nil)
+        let tasks = try JSONDecoder().decode([VikunjaTask].self, from: data)
+        allTasks.append(contentsOf: tasks)
+        if totalPages == nil {
+            if let header = response.value(forHTTPHeaderField: "x-pagination-total-pages"), let parsed = Int(header) {
+                totalPages = parsed
+            }
+        }
+        if tasks.isEmpty {
+            break
+        }
+        if let totalPages = totalPages, page >= totalPages {
+            break
+        }
+        page += 1
+    }
+    return allTasks.map {
         let alarms: [CommonAlarm] = ($0.reminders ?? []).map { reminder in
             if let abs = reminder.reminder {
                 return CommonAlarm(type: "absolute", absolute: abs, relativeSeconds: nil, relativeTo: nil)
