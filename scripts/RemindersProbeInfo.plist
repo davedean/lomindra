@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>co.dasie.vikunja-reminders-probe</string>
+  <key>CFBundleName</key>
+  <string>Vikunja Reminders Probe</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.1</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>NSRemindersUsageDescription</key>
+  <string>Probe to inspect EventKit reminder fields for Vikunja sync.</string>
+</dict>
+</plist>

@@ -1,0 +1,137 @@
+[
+  {
+    "title": "seed: due-only",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-01"
+  },
+  {
+    "title": "seed: start-only",
+    "side": "both",
+    "completed": false,
+    "start": "2026-02-02T09:30:00Z"
+  },
+  {
+    "title": "seed: due+start",
+    "side": "both",
+    "completed": false,
+    "start": "2026-02-03T10:00:00Z",
+    "due": "2026-02-03T12:00:00Z"
+  },
+  {
+    "title": "seed: completed",
+    "side": "both",
+    "completed": true,
+    "due": "2026-02-04"
+  },
+  {
+    "title": "seed: alarm-relative",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-05T10:00:00Z",
+    "alarms": [
+      {
+        "type": "relative",
+        "relativeSeconds": -3600,
+        "relativeTo": "due"
+      }
+    ]
+  },
+  {
+    "title": "seed: recurrence-weekly",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-06",
+    "recurrence": {
+      "frequency": "weekly",
+      "interval": 1
+    }
+  },
+  {
+    "title": "seed: conflict-title",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-14"
+  },
+  {
+    "title": "seed: conflict-due",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-15"
+  },
+  {
+    "title": "seed: alarm-relative-start",
+    "side": "both",
+    "completed": false,
+    "start": "2026-02-06T08:00:00Z",
+    "alarms": [
+      {
+        "type": "relative",
+        "relativeSeconds": -1800,
+        "relativeTo": "start"
+      }
+    ]
+  },
+  {
+    "title": "seed: recurrence-monthly",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-11",
+    "recurrence": {
+      "frequency": "monthly",
+      "interval": 1
+    }
+  },
+  {
+    "title": "seed: due-midnight-time",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-12T00:00:00Z"
+  },
+  {
+    "title": "seed: reminders-only",
+    "side": "reminders",
+    "completed": false,
+    "due": "2026-02-07"
+  },
+  {
+    "title": "seed: vikunja-only",
+    "side": "vikunja",
+    "completed": false,
+    "due": "2026-02-08"
+  },
+  {
+    "title": "seed: alarm-absolute",
+    "side": "vikunja",
+    "completed": false,
+    "due": "2026-02-09T11:00:00Z",
+    "alarms": [
+      {
+        "type": "absolute",
+        "absolute": "2026-02-09T09:00:00Z"
+      }
+    ]
+  },
+  {
+    "title": "seed: alarm-absolute-reminders",
+    "side": "reminders",
+    "completed": false,
+    "due": "2026-02-13T11:00:00Z",
+    "alarms": [
+      {
+        "type": "absolute",
+        "absolute": "2026-02-13T10:00:00Z"
+      }
+    ]
+  },
+  {
+    "title": "seed: recurrence-daily-4",
+    "side": "vikunja",
+    "completed": false,
+    "due": "2026-02-10",
+    "recurrence": {
+      "frequency": "daily",
+      "interval": 4
+    }
+  }
+]
