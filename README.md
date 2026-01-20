@@ -73,6 +73,11 @@ Do not commit real tokens or URLs with embedded credentials.
   swift scripts/login_probe.swift
   ```
 
+## Screenshot
+
+<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-01-20 at 18 19 40" src="https://github.com/user-attachments/assets/932175d5-45fe-4f2e-97c7-33768cff9df3" />
+
+
 ## Docs
 Start with:
 - `docs/ios-setup.md`
