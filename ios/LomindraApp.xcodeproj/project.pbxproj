@@ -12,9 +12,11 @@
 		21743D872434EC7488776E4D /* VikunjaSyncLib in Frameworks */ = {isa = PBXBuildFile; productRef = D4DB2ACBD995EA5514068E6F /* VikunjaSyncLib */; };
 		380453E25B4449E1E5EC0F9A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1582CA11757A23D68E47E250 /* AppSettings.swift */; };
 		475686252EC44CA96A7EF551 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE738669FC8B6592050594C6 /* SyncView.swift */; };
+		7D6C5B4A3F2E1D0C9B8A7F6E /* SyncLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */; };
 		4A14C99667E4E48F44AAE223 /* LomindraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C23CDD5E08494FB0E6F234 /* LomindraApp.swift */; };
 		6F9D3525F45233CC9B6B6C02 /* BackgroundSyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 263E8B199DC45A98C0650D0C /* BackgroundSyncStatus.swift */; };
 		83AB81F09C6DBD379337EB04 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB30C3B4DFEC66B54EE0E4C /* RemindersService.swift */; };
+		8F3B2A1C9D0E4F87B6A5C4D3 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */; };
 		9A6B31AE540812220CB3C2A6 /* ListSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F1A00DAE1AD9643FBDE7C9 /* ListSelectionView.swift */; };
 		ADDB836FCA684B6CF63B0C87 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C63607155D9108AB6744D /* AppState.swift */; };
 		D2C528351A604EEF900D183B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */; };
@@ -40,11 +42,13 @@
 		4324970825DFC1E00D6BAA6A /* VikunjaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VikunjaAPI.swift; sourceTree = "<group>"; };
 		44CEE1C3EA44C9B2594D58FA /* BackgroundSyncStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatusStore.swift; sourceTree = "<group>"; };
 		49A200E21F122A4C4A7DB7FE /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLogStore.swift; sourceTree = "<group>"; };
 		6900A0D5BAD92E334E883954 /* BackgroundSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncManager.swift; sourceTree = "<group>"; };
 		69AD392D7B944F3BBCABC5CD /* SafeLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeLog.swift; sourceTree = "<group>"; };
 		746160B9144B19843F0AA290 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		74F1A00DAE1AD9643FBDE7C9 /* ListSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListSelectionView.swift; sourceTree = "<group>"; };
 		7EB30C3B4DFEC66B54EE0E4C /* RemindersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
+		5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		834C3E3D7323D0ED359274FA /* ConflictReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictReportView.swift; sourceTree = "<group>"; };
 		8A4DC1DF80BFA4F99EFCBF48 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
@@ -87,6 +91,7 @@
 				746160B9144B19843F0AA290 /* LoginView.swift */,
 				49A200E21F122A4C4A7DB7FE /* MainView.swift */,
 				E99EB941E105043AAE0F3915 /* RootView.swift */,
+				5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */,
 				CE738669FC8B6592050594C6 /* SyncView.swift */,
 			);
 			path = Views;
@@ -121,6 +126,7 @@
 				69AD392D7B944F3BBCABC5CD /* SafeLog.swift */,
 				F601059000D5B1EE7781D80E /* SettingsStore.swift */,
 				944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */,
+				3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */,
 				4324970825DFC1E00D6BAA6A /* VikunjaAPI.swift */,
 			);
 			path = Services;
@@ -233,7 +239,9 @@
 				83AB81F09C6DBD379337EB04 /* RemindersService.swift in Sources */,
 				0CF7F96F5BEBA80BBAC589E1 /* RootView.swift in Sources */,
 				D59BAFB7629BA091C802A399 /* SafeLog.swift in Sources */,
+				8F3B2A1C9D0E4F87B6A5C4D3 /* ShareSheet.swift in Sources */,
 				0D68B363428BBE175364B761 /* SettingsStore.swift in Sources */,
+				7D6C5B4A3F2E1D0C9B8A7F6E /* SyncLogStore.swift in Sources */,
 				B857E5813990461CC2AC5F25 /* SyncCoordinator.swift in Sources */,
 				475686252EC44CA96A7EF551 /* SyncView.swift in Sources */,
 				D5199A535FFBBFEE52EB5648 /* VikunjaAPI.swift in Sources */,
