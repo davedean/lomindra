@@ -86,6 +86,9 @@ Deliverable: multi-list sync with selectable lists + roadmap for iOS app.
 - Manual sync button + dry-run preview + summary. (done)
 - iOS app launches in simulator and logs in successfully. (done)
 - Dry run/apply buttons behave correctly (tap hit-testing fix). (done)
+- Allow limited app usage without Vikunja sign-in; replace Vikunja-backed screens with a "sign in to Vikunja" prompt and disable actions clearly.
+- Hide Sign Out behind a settings menu (gear or hamburger) to avoid accidental sign-out.
+- Consider removing Dry Run button for most users; keep it as a debug-only option if needed.
 
 Deliverable: working iOS MVP with manual sync.
 
@@ -93,6 +96,8 @@ Deliverable: working iOS MVP with manual sync.
 - Background sync (BGAppRefreshTask/BGProcessingTask).
 - Conflict review UI with per-conflict resolution.
 - Error handling, retry/backoff, and safe logging.
+- Simplify sync output: "Sync complete" on success; hide conflict log links unless conflicts exist.
+- When sync fails, prefer user-focused error summaries and optionally provide a "request support" action that shares a redacted log.
 
 Deliverable: reliable sync with conflict review.
 
@@ -100,5 +105,7 @@ Deliverable: reliable sync with conflict review.
 - Onboarding + permissions prompts.
 - Settings export/import + diagnostics.
 - Release checklist + small beta distribution plan.
+- Add a Feedback option that opens an email draft.
+- Add a GitHub repo link.
 
 Deliverable: beta-ready iOS app.
