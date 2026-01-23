@@ -1,8 +1,17 @@
 # Issue 005: Spurious start_date added on sync
 
 **Severity:** Low
-**Status:** Open
+**Status:** Resolved
 **Reported:** 2026-01-23
+**Resolved:** 2026-01-23
+
+## Resolution
+
+Fixed by using explicit guarded assignments with nil clearing in `updateReminder()`. The unconditional assignment didn't properly clear dates when the source value was nil.
+
+**Changes:**
+- Updated `updateReminder()` in `Sources/VikunjaSyncLib/SyncRunner.swift`
+- Updated `updateReminder()` in `scripts/mvp_sync.swift`
 
 ## Problem
 

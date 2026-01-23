@@ -16,7 +16,7 @@ Tracking issues identified during sync testing.
 |---|-------|----------|------------|--------|
 | 003 | [Vikunja reminders to alerts](003-vikunja-reminders-to-alerts.md) | Medium | Low | **Resolved** |
 | 004 | [Recurrence not syncing](004-recurrence-not-syncing.md) | Medium | Low | **Resolved** |
-| 005 | [Spurious start_date added](005-spurious-start-date.md) | Low | Low | Open |
+| 005 | [Spurious start_date added](005-spurious-start-date.md) | Low | Low | **Resolved** |
 
 ### Feature Gaps (Lower Priority)
 
@@ -31,7 +31,7 @@ Tracking issues identified during sync testing.
 
 **Quick wins (Low complexity):**
 - ~~Issue 004: Recurrence - one guard condition fix~~ **DONE**
-- Issue 005: Spurious start_date - match create pattern in update
+- ~~Issue 005: Spurious start_date - match create pattern in update~~ **DONE**
 - ~~Issue 003: Alerts - save-fetch-modify-save pattern~~ **DONE**
 
 **Medium effort:**
