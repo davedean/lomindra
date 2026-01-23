@@ -1,6 +1,6 @@
 # Vikunja Data Model Notes (from OpenAPI)
 
-Source: `https://tasks.cb.dc.dasie.co/api/v1/docs.json` (self-signed TLS)
+Source: `https://vikunja.example.com/api/v1/docs.json` (self-signed TLS)
 
 ## Project (List equivalent)
 Definition: `models.Project`
