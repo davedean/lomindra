@@ -39,8 +39,9 @@ public struct CommonTask {
     public let notes: String?
     public let isFlagged: Bool
     public let completedAt: String?
+    public let url: String?
 
-    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil) {
+    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil, url: String? = nil) {
         self.source = source
         self.id = id
         self.listId = listId
@@ -57,6 +58,7 @@ public struct CommonTask {
         self.notes = notes
         self.isFlagged = isFlagged
         self.completedAt = completedAt
+        self.url = url
     }
 }
 
@@ -341,6 +343,53 @@ public func vikunjaPriorityToReminders(_ priority: Int?) -> Int {
     }
 }
 
+// MARK: - URL Embedding
+
+private let urlStartMarker = "---URL_START---"
+private let urlEndMarker = "---URL_END---"
+
+/// Embed URL at the beginning of description using markers
+public func embedUrlInDescription(description: String?, url: String?) -> String? {
+    guard let url = url, !url.isEmpty else { return description }
+    let urlBlock = "\(urlStartMarker)\n\(url)\n\(urlEndMarker)"
+    if let desc = description, !desc.isEmpty {
+        return "\(urlBlock)\n\(desc)"
+    }
+    return urlBlock
+}
+
+/// Extract URL from description that was embedded with markers
+public func extractUrlFromDescription(_ description: String?) -> String? {
+    guard let desc = description,
+          let startRange = desc.range(of: urlStartMarker),
+          let endRange = desc.range(of: urlEndMarker),
+          startRange.upperBound < endRange.lowerBound else { return nil }
+
+    let urlStart = desc.index(after: startRange.upperBound)
+    let urlEnd = desc.index(before: endRange.lowerBound)
+    guard urlStart <= urlEnd else { return nil }
+
+    let extracted = String(desc[urlStart...urlEnd]).trimmingCharacters(in: .whitespacesAndNewlines)
+    return extracted.isEmpty ? nil : extracted
+}
+
+/// Remove URL block from description, returning the clean description
+public func stripUrlFromDescription(_ description: String?) -> String? {
+    guard let desc = description else { return nil }
+    guard let startRange = desc.range(of: urlStartMarker),
+          let endRange = desc.range(of: urlEndMarker) else { return desc }
+
+    var result = desc
+    // Find the end of the URL block (including trailing newline if present)
+    var endIndex = endRange.upperBound
+    if endIndex < desc.endIndex && desc[endIndex] == "\n" {
+        endIndex = desc.index(after: endIndex)
+    }
+    result.removeSubrange(startRange.lowerBound..<endIndex)
+    let trimmed = result.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+}
+
 // MARK: - Signatures for Comparison
 
 public func signature(_ task: CommonTask) -> String {
@@ -446,6 +495,7 @@ public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [C
     addDiff(field: "priority", reminders: String(reminders.priority ?? 0), vikunja: String(vikunja.priority ?? 0))
     addDiff(field: "notes", reminders: reminders.notes ?? "", vikunja: vikunja.notes ?? "")
     addDiff(field: "flagged", reminders: String(reminders.isFlagged), vikunja: String(vikunja.isFlagged))
+    addDiff(field: "url", reminders: reminders.url ?? "", vikunja: vikunja.url ?? "")
     addDiff(field: "updatedAt", reminders: reminders.updatedAt ?? "nil", vikunja: vikunja.updatedAt ?? "nil")
 
     return diffs
@@ -462,7 +512,8 @@ public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool
     let samePriority = (left.priority ?? 0) == (right.priority ?? 0)
     let sameNotes = left.notes == right.notes
     let sameFlagged = left.isFlagged == right.isFlagged
-    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged)
+    let sameUrl = left.url == right.url
+    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged && sameUrl)
 }
 
 public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [String: SyncRecord], verbose: Bool = true) -> SyncPlan {

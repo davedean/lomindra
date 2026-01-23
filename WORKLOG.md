@@ -67,3 +67,9 @@
   - Checked macOS SDK headers - no `isFlagged` property on `EKReminder` or `EKCalendarItem`
   - Documented limitation: Vikunja `is_favorite` cannot sync to/from Reminders flags
   - Issue 001 marked complete (3/4 fields working; 1 blocked by Apple API)
+- **Fixed Issue 008: URLs not syncing**
+  - Added `url: String?` field to CommonTask
+  - URLs embedded in Vikunja description using `---URL_START---`/`---URL_END---` markers
+  - Extract URL from description on fetch, embed on create/update
+  - EKReminder.url property used for Reminders side
+  - Added 16 unit tests for URL embedding/extraction and diff detection

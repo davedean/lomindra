@@ -1,8 +1,18 @@
 # Issue 008: URLs not syncing
 
 **Severity:** Medium
-**Status:** Open
+**Status:** Resolved
 **Reported:** 2026-01-23
+**Resolved:** 2026-01-23
+
+## Resolution
+
+Implemented URL sync using description embedding:
+- Added `url: String?` field to CommonTask
+- URLs embedded in Vikunja description with `---URL_START---`/`---URL_END---` markers
+- Extracted/stripped on read, embedded on write
+- EKReminder.url property used for Reminders side
+- 16 unit tests for URL embedding/extraction and diff detection
 
 ## Problem
 
