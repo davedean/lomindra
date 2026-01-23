@@ -133,5 +133,76 @@
       "frequency": "daily",
       "interval": 4
     }
+  },
+  {
+    "title": "seed: priority-high",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-16",
+    "priority": 1,
+    "notes": "This is a high priority task"
+  },
+  {
+    "title": "seed: priority-medium",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-17",
+    "priority": 5
+  },
+  {
+    "title": "seed: priority-low",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-18",
+    "priority": 9
+  },
+  {
+    "title": "seed: notes-only",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-19",
+    "notes": "These are detailed notes for the task.\nWith multiple lines.\nAnd some special chars: <>&\""
+  },
+  {
+    "title": "seed: url-only",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-20",
+    "url": "https://example.com/task-reference"
+  },
+  {
+    "title": "seed: url-with-notes",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-21",
+    "notes": "Check this link for more info",
+    "url": "https://docs.example.com/guide"
+  },
+  {
+    "title": "seed: priority-url-notes",
+    "side": "both",
+    "completed": false,
+    "due": "2026-02-22",
+    "priority": 1,
+    "notes": "Important task with all fields set",
+    "url": "https://jira.example.com/PROJ-123"
+  },
+  {
+    "title": "seed: priority-high-reminders",
+    "side": "reminders",
+    "completed": false,
+    "due": "2026-02-23",
+    "priority": 1,
+    "notes": "Created in Reminders only",
+    "url": "https://reminders.example.com/r1"
+  },
+  {
+    "title": "seed: priority-high-vikunja",
+    "side": "vikunja",
+    "completed": false,
+    "due": "2026-02-24",
+    "priority": 1,
+    "notes": "Created in Vikunja only",
+    "url": "https://vikunja.example.com/v1"
   }
 ]

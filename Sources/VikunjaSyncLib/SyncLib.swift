@@ -375,9 +375,13 @@ public func extractUrlFromDescription(_ description: String?) -> String? {
 
 /// Remove URL block from description, returning the clean description
 public func stripUrlFromDescription(_ description: String?) -> String? {
-    guard let desc = description else { return nil }
+    guard let desc = description, !desc.isEmpty else { return nil }
     guard let startRange = desc.range(of: urlStartMarker),
-          let endRange = desc.range(of: urlEndMarker) else { return desc }
+          let endRange = desc.range(of: urlEndMarker) else {
+        // No URL block, return original (normalized to nil if empty)
+        let trimmed = desc.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     var result = desc
     // Find the end of the URL block (including trailing newline if present)
@@ -510,9 +514,14 @@ public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool
     let sameAlarms = alarmComparableSet(task: left) == alarmComparableSet(task: right)
     let sameRecurrence = recurrenceSignature(left.recurrence) == recurrenceSignature(right.recurrence)
     let samePriority = (left.priority ?? 0) == (right.priority ?? 0)
-    let sameNotes = left.notes == right.notes
+    // Normalize nil and empty string as equivalent for notes and url
+    let leftNotes = left.notes?.isEmpty == true ? nil : left.notes
+    let rightNotes = right.notes?.isEmpty == true ? nil : right.notes
+    let sameNotes = leftNotes == rightNotes
     let sameFlagged = left.isFlagged == right.isFlagged
-    let sameUrl = left.url == right.url
+    let leftUrl = left.url?.isEmpty == true ? nil : left.url
+    let rightUrl = right.url?.isEmpty == true ? nil : right.url
+    let sameUrl = leftUrl == rightUrl
     return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged && sameUrl)
 }
 
