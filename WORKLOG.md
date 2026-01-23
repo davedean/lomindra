@@ -111,3 +111,9 @@
   - Changed to `kSecAttrAccessibleAfterFirstUnlock` - readable after first unlock
   - Added migration function that re-saves existing tokens with new accessibility
   - Migration runs on app startup to fix existing installs
+- **Added sync logs list view**
+  - New SyncLogsView shows all historical sync logs
+  - Each entry shows source (manual/background) and timestamp
+  - Tap to share/export individual logs
+  - Replaced single "Download Sync Log" with "View Sync Logs" menu item
+  - Helps debug background sync issues by viewing historical logs
