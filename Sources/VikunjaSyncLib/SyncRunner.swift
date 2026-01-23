@@ -1388,9 +1388,13 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     item.dueDateComponents = today
                     inferredDue = true
                 }
+                // Remove only time-based alarms; preserve location-based alarms
+                // (Vikunja doesn't support locations, so we keep them untouched)
                 if let existingAlarms = item.alarms {
                     for alarm in existingAlarms {
-                        item.removeAlarm(alarm)
+                        if alarm.structuredLocation == nil {
+                            item.removeAlarm(alarm)
+                        }
                     }
                 }
                 if !task.alarms.isEmpty {
