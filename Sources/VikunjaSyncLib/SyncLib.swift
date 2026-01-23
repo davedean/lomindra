@@ -655,12 +655,18 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
 
     for key in onlyInReminders {
         if let task = remindersMap[key]?.first {
-            toCreateInVikunja.append(task)
+            // Skip creating completed tasks that were never synced
+            if !task.isCompleted {
+                toCreateInVikunja.append(task)
+            }
         }
     }
     for key in onlyInVikunja {
         if let task = vikunjaMap[key]?.first {
-            toCreateInReminders.append(task)
+            // Skip creating completed tasks that were never synced
+            if !task.isCompleted {
+                toCreateInReminders.append(task)
+            }
         }
     }
 
