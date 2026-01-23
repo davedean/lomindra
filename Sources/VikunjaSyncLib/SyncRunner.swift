@@ -1306,8 +1306,11 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 if let due = dateComponentsFromISO(task.due, dateOnly: isDateOnlyString(task.due)) {
                     reminder.dueDateComponents = due
                 }
+                // Explicitly set/clear startDateComponents (EventKit may auto-set it when due is set)
                 if let start = dateComponentsFromISO(task.start, dateOnly: isDateOnlyString(task.start)) {
                     reminder.startDateComponents = start
+                } else {
+                    reminder.startDateComponents = nil
                 }
                 var inferredDue = false
                 if task.recurrence != nil && reminder.dueDateComponents == nil {
