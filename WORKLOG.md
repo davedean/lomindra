@@ -105,3 +105,9 @@
   - Default is 1 hour
   - Changing frequency reschedules background task automatically
   - Sync logs already exist in Documents/sync-logs/ for debugging
+- **Fixed keychain accessibility for background sync**
+  - Token was saved with default `kSecAttrAccessibleWhenUnlocked` - unreadable when device locked
+  - Background sync runs while device is locked, couldn't read token
+  - Changed to `kSecAttrAccessibleAfterFirstUnlock` - readable after first unlock
+  - Added migration function that re-saves existing tokens with new accessibility
+  - Migration runs on app startup to fix existing installs
