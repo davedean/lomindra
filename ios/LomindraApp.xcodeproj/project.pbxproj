@@ -3,24 +3,25 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0CF7F96F5BEBA80BBAC589E1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99EB941E105043AAE0F3915 /* RootView.swift */; };
 		0D68B363428BBE175364B761 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F601059000D5B1EE7781D80E /* SettingsStore.swift */; };
 		21743D872434EC7488776E4D /* VikunjaSyncLib in Frameworks */ = {isa = PBXBuildFile; productRef = D4DB2ACBD995EA5514068E6F /* VikunjaSyncLib */; };
+		2DC5751949BB15099C5544BE /* SyncLogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497EE395A886EA3422F5CAF /* SyncLogsView.swift */; };
 		380453E25B4449E1E5EC0F9A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1582CA11757A23D68E47E250 /* AppSettings.swift */; };
 		475686252EC44CA96A7EF551 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE738669FC8B6592050594C6 /* SyncView.swift */; };
-		7D6C5B4A3F2E1D0C9B8A7F6E /* SyncLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */; };
 		4A14C99667E4E48F44AAE223 /* LomindraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C23CDD5E08494FB0E6F234 /* LomindraApp.swift */; };
+		62A46E21F93B3D9B9905D5D5 /* SyncLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA53ED4F8BB5FD266D2DACF /* SyncLogStore.swift */; };
 		6F9D3525F45233CC9B6B6C02 /* BackgroundSyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 263E8B199DC45A98C0650D0C /* BackgroundSyncStatus.swift */; };
+		709CBD5F86075F880A27B0C4 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE9C1A9DC531DB6639C30C6 /* ShareSheet.swift */; };
 		83AB81F09C6DBD379337EB04 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB30C3B4DFEC66B54EE0E4C /* RemindersService.swift */; };
-		8F3B2A1C9D0E4F87B6A5C4D3 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */; };
 		9A6B31AE540812220CB3C2A6 /* ListSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F1A00DAE1AD9643FBDE7C9 /* ListSelectionView.swift */; };
 		ADDB836FCA684B6CF63B0C87 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C63607155D9108AB6744D /* AppState.swift */; };
-		D2C528351A604EEF900D183B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */; };
 		AF13A707F8169C23CE7DD0D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 41719055C52BCD7907890F02 /* LaunchScreen.storyboard */; };
+		B77EECA73D8AF5677ADE50D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 019A1C3D3145B73F40FB8F03 /* Assets.xcassets */; };
 		B857E5813990461CC2AC5F25 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */; };
 		BB7E1209F0091F5739F83EDF /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4DC1DF80BFA4F99EFCBF48 /* KeychainStore.swift */; };
 		C0BA8581B8DD1FB78399F50C /* BackgroundSyncStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44CEE1C3EA44C9B2594D58FA /* BackgroundSyncStatusStore.swift */; };
@@ -34,31 +35,32 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		019A1C3D3145B73F40FB8F03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1582CA11757A23D68E47E250 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		1BA53ED4F8BB5FD266D2DACF /* SyncLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLogStore.swift; sourceTree = "<group>"; };
 		24D847E69F4137EF54DF5EC3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		263E8B199DC45A98C0650D0C /* BackgroundSyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatus.swift; sourceTree = "<group>"; };
-		3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		41719055C52BCD7907890F02 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4324970825DFC1E00D6BAA6A /* VikunjaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VikunjaAPI.swift; sourceTree = "<group>"; };
 		44CEE1C3EA44C9B2594D58FA /* BackgroundSyncStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncStatusStore.swift; sourceTree = "<group>"; };
 		49A200E21F122A4C4A7DB7FE /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLogStore.swift; sourceTree = "<group>"; };
 		6900A0D5BAD92E334E883954 /* BackgroundSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncManager.swift; sourceTree = "<group>"; };
 		69AD392D7B944F3BBCABC5CD /* SafeLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeLog.swift; sourceTree = "<group>"; };
 		746160B9144B19843F0AA290 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		74F1A00DAE1AD9643FBDE7C9 /* ListSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListSelectionView.swift; sourceTree = "<group>"; };
 		7EB30C3B4DFEC66B54EE0E4C /* RemindersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
-		5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		834C3E3D7323D0ED359274FA /* ConflictReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictReportView.swift; sourceTree = "<group>"; };
 		8A4DC1DF80BFA4F99EFCBF48 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
 		B0C23CDD5E08494FB0E6F234 /* LomindraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LomindraApp.swift; sourceTree = "<group>"; };
 		B756ECBCEA3307CEE4CFD0BE /* vikunja_reminders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vikunja_reminders; path = ..; sourceTree = SOURCE_ROOT; };
 		CE738669FC8B6592050594C6 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
+		DDE9C1A9DC531DB6639C30C6 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		E497EE395A886EA3422F5CAF /* SyncLogsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLogsView.swift; sourceTree = "<group>"; };
 		E99EB941E105043AAE0F3915 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		EADE63404DF7F01A04C423EB /* ErrorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPresenter.swift; sourceTree = "<group>"; };
 		F601059000D5B1EE7781D80E /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		F6D97ACFEA5F26E60955E827 /* Lomindra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lomindra.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6D97ACFEA5F26E60955E827 /* LomindraApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LomindraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F95C63607155D9108AB6744D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -91,7 +93,8 @@
 				746160B9144B19843F0AA290 /* LoginView.swift */,
 				49A200E21F122A4C4A7DB7FE /* MainView.swift */,
 				E99EB941E105043AAE0F3915 /* RootView.swift */,
-				5E1C0C3A3D8E4B91A1B2C3D4 /* ShareSheet.swift */,
+				DDE9C1A9DC531DB6639C30C6 /* ShareSheet.swift */,
+				E497EE395A886EA3422F5CAF /* SyncLogsView.swift */,
 				CE738669FC8B6592050594C6 /* SyncView.swift */,
 			);
 			path = Views;
@@ -126,7 +129,7 @@
 				69AD392D7B944F3BBCABC5CD /* SafeLog.swift */,
 				F601059000D5B1EE7781D80E /* SettingsStore.swift */,
 				944A0CA5EEEA92934A1C7E6B /* SyncCoordinator.swift */,
-				3C9F1A2B4D5E6F708192A3B4 /* SyncLogStore.swift */,
+				1BA53ED4F8BB5FD266D2DACF /* SyncLogStore.swift */,
 				4324970825DFC1E00D6BAA6A /* VikunjaAPI.swift */,
 			);
 			path = Services;
@@ -135,9 +138,9 @@
 		9550E027330BDA4372FDF2E4 /* LomindraApp */ = {
 			isa = PBXGroup;
 			children = (
+				019A1C3D3145B73F40FB8F03 /* Assets.xcassets */,
 				24D847E69F4137EF54DF5EC3 /* Info.plist */,
 				41719055C52BCD7907890F02 /* LaunchScreen.storyboard */,
-				3FACF48CEAFE4D8F97ABC91A /* Assets.xcassets */,
 				B0C23CDD5E08494FB0E6F234 /* LomindraApp.swift */,
 				2E6BDFB85D03FAE2C5A448A4 /* Models */,
 				8C6F36EA5525D219D46177C0 /* Services */,
@@ -149,7 +152,7 @@
 		C7436D69D0F44AF6C6013CFF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F6D97ACFEA5F26E60955E827 /* Lomindra.app */,
+				F6D97ACFEA5F26E60955E827 /* LomindraApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,7 +177,7 @@
 				D4DB2ACBD995EA5514068E6F /* VikunjaSyncLib */,
 			);
 			productName = LomindraApp;
-			productReference = F6D97ACFEA5F26E60955E827 /* Lomindra.app */;
+			productReference = F6D97ACFEA5F26E60955E827 /* LomindraApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -184,7 +187,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 1430;
 			};
 			buildConfigurationList = 4392F667EF7EE8611DFAF02E /* Build configuration list for PBXProject "LomindraApp" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -199,6 +202,7 @@
 			packageReferences = (
 				7995BA64D7EE6731EEB5F9E0 /* XCLocalSwiftPackageReference ".." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -212,7 +216,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D2C528351A604EEF900D183B /* Assets.xcassets in Resources */,
+				B77EECA73D8AF5677ADE50D0 /* Assets.xcassets in Resources */,
 				AF13A707F8169C23CE7DD0D1 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -239,10 +243,11 @@
 				83AB81F09C6DBD379337EB04 /* RemindersService.swift in Sources */,
 				0CF7F96F5BEBA80BBAC589E1 /* RootView.swift in Sources */,
 				D59BAFB7629BA091C802A399 /* SafeLog.swift in Sources */,
-				8F3B2A1C9D0E4F87B6A5C4D3 /* ShareSheet.swift in Sources */,
 				0D68B363428BBE175364B761 /* SettingsStore.swift in Sources */,
-				7D6C5B4A3F2E1D0C9B8A7F6E /* SyncLogStore.swift in Sources */,
+				709CBD5F86075F880A27B0C4 /* ShareSheet.swift in Sources */,
 				B857E5813990461CC2AC5F25 /* SyncCoordinator.swift in Sources */,
+				62A46E21F93B3D9B9905D5D5 /* SyncLogStore.swift in Sources */,
+				2DC5751949BB15099C5544BE /* SyncLogsView.swift in Sources */,
 				475686252EC44CA96A7EF551 /* SyncView.swift in Sources */,
 				D5199A535FFBBFEE52EB5648 /* VikunjaAPI.swift in Sources */,
 			);
@@ -273,7 +278,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -305,10 +309,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 34QPHVHXF7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -328,7 +330,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -339,7 +340,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -371,10 +371,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 34QPHVHXF7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -387,7 +385,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

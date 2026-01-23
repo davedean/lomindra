@@ -44,16 +44,76 @@ struct SyncLogStore {
     }
 
     static func latestLogURL() -> URL? {
+        return allLogURLs().first
+    }
+
+    /// Returns all sync log URLs, sorted by modification date (newest first)
+    static func allLogURLs() -> [URL] {
         guard let directory = logDirectoryURL(),
               let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) else {
-            return nil
+            return []
         }
         let candidates = files.filter { $0.pathExtension == "log" }
         return candidates.sorted { lhs, rhs in
             let leftDate = (try? lhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             let rightDate = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             return leftDate > rightDate
-        }.first
+        }
+    }
+
+    /// Parse log filename to extract source and timestamp
+    static func parseLogFilename(_ url: URL) -> (source: String, date: Date)? {
+        // Format: sync-{source}-{timestamp}.log
+        // Example: sync-background-2026-01-23T08-44-46Z.log
+        let filename = url.deletingPathExtension().lastPathComponent
+        guard filename.hasPrefix("sync-") else { return nil }
+        let parts = filename.dropFirst(5) // Remove "sync-"
+
+        // Find the source (everything before the timestamp)
+        // Timestamp starts with a digit after a hyphen
+        var source = ""
+        var timestampPart = ""
+        var foundTimestamp = false
+
+        for (index, char) in parts.enumerated() {
+            if !foundTimestamp && char == "-" {
+                let nextIndex = parts.index(parts.startIndex, offsetBy: index + 1, limitedBy: parts.endIndex)
+                if let next = nextIndex, next < parts.endIndex {
+                    let nextChar = parts[next]
+                    if nextChar.isNumber {
+                        foundTimestamp = true
+                        timestampPart = String(parts[next...])
+                        break
+                    }
+                }
+                source += String(char)
+            } else if !foundTimestamp {
+                source += String(char)
+            }
+        }
+
+        // Remove trailing hyphen from source
+        if source.hasSuffix("-") {
+            source = String(source.dropLast())
+        }
+
+        // Parse timestamp (format: 2026-01-23T08-44-46Z)
+        let isoTimestamp = timestampPart.replacingOccurrences(of: "-", with: ":")
+            .replacingOccurrences(of: "T:", with: "T")  // Fix the T: that appears after date
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+
+        // Try parsing with the corrected format
+        if let date = formatter.date(from: isoTimestamp) {
+            return (source, date)
+        }
+
+        // Fallback: use file modification date
+        if let modDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate {
+            return (source.isEmpty ? "unknown" : source, modDate)
+        }
+
+        return nil
     }
 
     private static func headerText(mode: SyncRunMode, settings: AppSettings, source: String) -> String {
