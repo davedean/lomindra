@@ -1,21 +1,25 @@
 # Issue 001: Add missing fields to CommonTask (priority, notes, flags, completedAt)
 
 **Severity:** Medium-High
-**Status:** Open
+**Status:** Partial (3/4 fields complete)
 **Reported:** 2026-01-23
 
-## Problem
-
-Four core fields are completely missing from `CommonTask`, causing data loss in both sync directions:
+## Progress
 
 | Field | Reminders | Vikunja | Status |
 |-------|-----------|---------|--------|
-| **Priority** | `EKReminder.priority` (0/1/5/9) | `Task.priority` (0-5) | Not synced |
-| **Notes** | `EKReminder.notes` | `Task.description` | Not synced |
-| **Flags** | `EKReminder.isFlagged` | `Task.is_favorite` | Not synced |
-| **Completed At** | `EKReminder.completionDate` | `Task.done_at` | Not synced |
+| **Priority** | `EKReminder.priority` (0/1/5/9) | `Task.priority` (0-5) | ✅ Complete |
+| **Notes** | `EKReminder.notes` | `Task.description` | ✅ Complete |
+| **Flags** | `EKReminder.isFlagged` | `Task.is_favorite` | ⚠️ Vikunja→Reminders works; Reminders→Vikunja hardcoded to false |
+| **Completed At** | `EKReminder.completionDate` | `Task.done_at` | ✅ Complete |
 
-All four follow the same implementation pattern and should be added together.
+## Remaining Work
+
+The `isFlagged` field is hardcoded to `false` in `fetchReminders()` with a TODO comment. Need to verify `EKReminder.isFlagged` API works correctly before enabling.
+
+## Original Problem
+
+Four core fields were completely missing from `CommonTask`, causing data loss in both sync directions.
 
 ## Root Cause
 
@@ -57,8 +61,6 @@ public struct CommonTask {
 ```
 
 Update initializer to include all four new parameters.
-
-**Also update:** `scripts/sync_lib.swift` (lines 15-28) - legacy script version
 
 ### 2. Add priority mapping functions
 
@@ -373,8 +375,6 @@ Direct boolean mapping:
 |------|---------|
 | `Sources/VikunjaSyncLib/SyncLib.swift` | Add fields to CommonTask, priority mapping funcs, diff detection |
 | `Sources/VikunjaSyncLib/SyncRunner.swift` | Extend VikunjaTask, update fetch/create/update functions |
-| `scripts/sync_lib.swift` | Add fields to CommonTask (legacy) |
-| `scripts/mvp_sync.swift` | Same changes as SyncRunner (legacy) |
 | `Tests/VikunjaSyncLibTests/SyncLibTests.swift` | Update makeTask(), add tests |
 | `docs/translation-rules.md` | Document all three mappings |
 

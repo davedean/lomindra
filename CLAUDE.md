@@ -23,14 +23,8 @@ swift run mvp_sync
 swift run mvp_sync --apply
 ```
 
-### Legacy script compilation
+### Utility scripts
 ```bash
-# Build and run MVP sync (dry-run mode)
-swiftc -o /tmp/mvp_sync scripts/sync_lib.swift scripts/mvp_sync.swift && /tmp/mvp_sync
-
-# Run unit tests (standalone)
-swiftc -o /tmp/sync_tests scripts/sync_lib.swift scripts/sync_tests.swift && /tmp/sync_tests
-
 # List Reminders lists to find identifiers
 swiftc -o /tmp/list_reminders_lists scripts/list_reminders_lists.swift && /tmp/list_reminders_lists
 
@@ -51,15 +45,15 @@ The sync uses a neutral `CommonTask` schema to translate between systems. All tr
 - `Sources/VikunjaSyncLib/` - Pure functions and data models (testable, no I/O)
 - `Sources/mvp_sync/` - EventKit, Vikunja API, SQLite operations, CLI entry point
 - `Tests/VikunjaSyncLibTests/` - XCTest unit tests
-- `scripts/` - Legacy standalone scripts (still functional)
+- `scripts/` - Utility scripts (list helpers, test data seeding, probes)
 
-**Key components in `sync_lib.swift`**:
+**Key components in `SyncLib.swift`**:
 - `CommonTask`, `CommonAlarm`, `CommonRecurrence` - neutral data structures
 - `SyncRecord` - mapping metadata between Reminders ID and Vikunja ID
 - `SyncPlan` - computed diff (creates, updates, deletes, conflicts)
 - `diffTasks()` - core sync logic that computes the sync plan
 
-**Key components in `mvp_sync.swift`**:
+**Key components in `SyncRunner.swift`**:
 - `fetchReminders()` - EventKit API integration
 - `fetchVikunjaTasks()` - Vikunja HTTP API calls
 - SQLite functions for mapping persistence

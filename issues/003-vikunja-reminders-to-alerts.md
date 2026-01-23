@@ -11,7 +11,6 @@ Fixed by implementing save-fetch-modify-save pattern in `createReminder()`. Even
 
 **Changes:**
 - Updated `createReminder()` in `Sources/VikunjaSyncLib/SyncRunner.swift`
-- Updated `createReminder()` in `scripts/mvp_sync.swift`
 
 ## Problem
 
@@ -78,7 +77,6 @@ func createReminder(from task: CommonTask) throws -> (String, Bool) {
 ### Fix createReminder() function
 
 **File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 1266-1305)
-**Also:** `scripts/mvp_sync.swift` (lines 1054-1093)
 
 Save the reminder first, re-fetch it, then add alarms:
 
