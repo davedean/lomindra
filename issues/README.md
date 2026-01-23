@@ -22,7 +22,7 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Medium-High | Open |
+| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
 | 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | **Resolved** |
 | 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | Low | **Resolved** |
 | 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
@@ -47,12 +47,12 @@ Tracking issues identified during sync testing.
 - ~~Issue 001: Add missing fields~~ **DONE** (flagged status not exposed by EventKit API)
 - ~~Issue 008: URLs~~ **DONE** (embedded in description with markers)
 
-**Needs design decision:**
-- Issue 006: Tags/Labels - different models between systems (hashtag encoding recommended)
-
 **Recently resolved:**
 - ~~Issue 009: Locations~~ **DONE** - preserve location alarms during sync (don't overwrite)
-- ~~Issue 010: Attachments~~ **Cannot Fix** - EventKit has no attachment API for reminders
+
+**Cannot fix (EventKit API limitations):**
+- ~~Issue 006: Tags/Labels~~ - Native Reminders tags not exposed by EventKit
+- ~~Issue 010: Attachments~~ - EventKit has no attachment API for reminders
 
 ## Dependencies
 
