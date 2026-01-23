@@ -35,8 +35,12 @@ public struct CommonTask {
     public let recurrence: CommonRecurrence?
     public let dueIsDateOnly: Bool?
     public let startIsDateOnly: Bool?
+    public let priority: Int?
+    public let notes: String?
+    public let isFlagged: Bool
+    public let completedAt: String?
 
-    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?) {
+    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil) {
         self.source = source
         self.id = id
         self.listId = listId
@@ -49,6 +53,10 @@ public struct CommonTask {
         self.recurrence = recurrence
         self.dueIsDateOnly = dueIsDateOnly
         self.startIsDateOnly = startIsDateOnly
+        self.priority = priority
+        self.notes = notes
+        self.isFlagged = isFlagged
+        self.completedAt = completedAt
     }
 }
 
@@ -308,6 +316,31 @@ public func relativeToForVikunja(_ value: String?) -> String {
     return normalized == "none" ? "due_date" : normalized
 }
 
+// MARK: - Priority Mapping
+
+/// Convert Reminders priority (0/1/5/9) to Vikunja priority (0-3)
+public func remindersPriorityToVikunja(_ priority: Int?) -> Int {
+    guard let p = priority else { return 0 }
+    switch p {
+    case 1: return 3      // high
+    case 5: return 2      // medium
+    case 9: return 1      // low
+    default: return 0     // none
+    }
+}
+
+/// Convert Vikunja priority (0-5) to Reminders priority (0/1/5/9)
+public func vikunjaPriorityToReminders(_ priority: Int?) -> Int {
+    guard let p = priority else { return 0 }
+    switch p {
+    case 0: return 0      // none
+    case 1: return 9      // low
+    case 2: return 5      // medium
+    case 3...: return 1   // high (3, 4, 5 all map to high)
+    default: return 0
+    }
+}
+
 // MARK: - Signatures for Comparison
 
 public func signature(_ task: CommonTask) -> String {
@@ -410,6 +443,9 @@ public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [C
     addDiff(field: "startDateOnly", reminders: String(reminders.startIsDateOnly ?? false), vikunja: String(vikunja.startIsDateOnly ?? false))
     addDiff(field: "alarms", reminders: alarmSignature(reminders.alarms), vikunja: alarmSignature(vikunja.alarms))
     addDiff(field: "recurrence", reminders: recurrenceSignature(reminders.recurrence), vikunja: recurrenceSignature(vikunja.recurrence))
+    addDiff(field: "priority", reminders: String(reminders.priority ?? 0), vikunja: String(vikunja.priority ?? 0))
+    addDiff(field: "notes", reminders: reminders.notes ?? "", vikunja: vikunja.notes ?? "")
+    addDiff(field: "flagged", reminders: String(reminders.isFlagged), vikunja: String(vikunja.isFlagged))
     addDiff(field: "updatedAt", reminders: reminders.updatedAt ?? "nil", vikunja: vikunja.updatedAt ?? "nil")
 
     return diffs
@@ -423,7 +459,10 @@ public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool
     let sameDue = ignoreDue || normalizeDueForMatch(left.due) == normalizeDueForMatch(right.due)
     let sameAlarms = alarmComparableSet(task: left) == alarmComparableSet(task: right)
     let sameRecurrence = recurrenceSignature(left.recurrence) == recurrenceSignature(right.recurrence)
-    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence)
+    let samePriority = (left.priority ?? 0) == (right.priority ?? 0)
+    let sameNotes = left.notes == right.notes
+    let sameFlagged = left.isFlagged == right.isFlagged
+    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged)
 }
 
 public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [String: SyncRecord], verbose: Bool = true) -> SyncPlan {
