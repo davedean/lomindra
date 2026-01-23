@@ -157,7 +157,8 @@ struct ListSelectionView: View {
             vikunjaProjectId: nil,
             selectedRemindersIds: Array(selectedReminders).sorted(),
             projectOverrides: projectOverrides,
-            backgroundSyncEnabled: appState.settings.backgroundSyncEnabled
+            backgroundSyncEnabled: appState.settings.backgroundSyncEnabled,
+            syncFrequencyMinutes: appState.settings.syncFrequencyMinutes
         )
         appState.updateSettings(newSettings)
     }

@@ -75,6 +75,12 @@ struct SyncView: View {
                         .foregroundColor(.secondary)
                         .font(.footnote)
                 }
+                Picker("Sync frequency", selection: syncFrequencyBinding) {
+                    ForEach(AppSettings.frequencyOptions, id: \.minutes) { option in
+                        Text(option.label).tag(option.minutes)
+                    }
+                }
+                .disabled(!isSignedIn)
 #if DEBUG
                 Group {
                     Button("Schedule Background Refresh") {
@@ -291,7 +297,8 @@ struct SyncView: View {
                     vikunjaProjectId: appState.settings.vikunjaProjectId,
                     selectedRemindersIds: appState.settings.selectedRemindersIds,
                     projectOverrides: appState.settings.projectOverrides,
-                    backgroundSyncEnabled: enabled
+                    backgroundSyncEnabled: enabled,
+                    syncFrequencyMinutes: appState.settings.syncFrequencyMinutes
                 )
                 appState.updateSettings(updated)
                 if enabled {
@@ -305,6 +312,33 @@ struct SyncView: View {
                 if !enabled {
                     backgroundStatus = backgroundStatusStore.load()
                     refreshPendingCount()
+                }
+            }
+        )
+    }
+
+    private var syncFrequencyBinding: Binding<Int> {
+        Binding(
+            get: { appState.settings.syncFrequencyMinutes },
+            set: { minutes in
+                let updated = AppSettings(
+                    apiBase: appState.settings.apiBase,
+                    syncAllLists: appState.settings.syncAllLists,
+                    remindersListId: appState.settings.remindersListId,
+                    vikunjaProjectId: appState.settings.vikunjaProjectId,
+                    selectedRemindersIds: appState.settings.selectedRemindersIds,
+                    projectOverrides: appState.settings.projectOverrides,
+                    backgroundSyncEnabled: appState.settings.backgroundSyncEnabled,
+                    syncFrequencyMinutes: minutes
+                )
+                appState.updateSettings(updated)
+                // Reschedule with new interval if background sync is enabled
+                if appState.settings.backgroundSyncEnabled {
+                    BackgroundSyncManager.shared.cancelPendingRefresh()
+                    BackgroundSyncManager.shared.scheduleAppRefresh {
+                        backgroundStatus = backgroundStatusStore.load()
+                        refreshPendingCount()
+                    }
                 }
             }
         )

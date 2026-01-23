@@ -7,13 +7,18 @@ final class BackgroundSyncManager {
     static let shared = BackgroundSyncManager()
 
     private let refreshTaskId = "com.lomindra.reminders.refresh"
-    private let defaultInterval: TimeInterval = 6 * 60 * 60
     private let settingsStore = SettingsStore()
     private let keychainStore = KeychainStore()
     private let syncCoordinator = SyncCoordinator()
     private let statusStore = BackgroundSyncStatusStore()
     private let schedulingQueue = DispatchQueue(label: "vikunja.background.schedule")
     private var isScheduling = false
+
+    /// Returns the sync interval from settings, or the default if not set
+    private var syncInterval: TimeInterval {
+        let minutes = settingsStore.load()?.syncFrequencyMinutes ?? AppSettings.defaultFrequencyMinutes
+        return TimeInterval(minutes * 60)
+    }
 
     func register() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshTaskId, using: nil) { task in
@@ -90,13 +95,14 @@ final class BackgroundSyncManager {
                 }
                 self.cancelPendingRefresh()
                 let request = BGAppRefreshTaskRequest(identifier: self.refreshTaskId)
-                request.earliestBeginDate = Date(timeIntervalSinceNow: self.defaultInterval)
+                request.earliestBeginDate = Date(timeIntervalSinceNow: self.syncInterval)
                 do {
                     try BGTaskScheduler.shared.submit(request)
+                    let intervalMinutes = Int(self.syncInterval / 60)
                     let status = BackgroundSyncStatus(
                         lastRun: Date(),
                         success: true,
-                        summary: "Scheduled background refresh.",
+                        summary: "Scheduled for ~\(intervalMinutes) min.",
                         errorMessage: nil,
                         reportPath: nil
                     )
