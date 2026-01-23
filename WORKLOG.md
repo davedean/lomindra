@@ -35,7 +35,7 @@
 - Added `scripts/login_probe.swift` for API login checks using env vars.
 - Updated `PROJECT_PLAN.md` to mark iOS app startup and login progress; added build-validation note in `AGENTS.md`.
 
-## 2026-01-23: Issue Tracking & Recurrence Fix
+## 2026-01-23: Issue Tracking & Bug Fixes
 - Created `issues/` directory with 8 tracked issues from sync testing
 - Performed comprehensive field audit (`issues/000-field-audit.md`)
 - **Fixed Issue 004: Recurrence not syncing**
@@ -44,3 +44,7 @@
   - Added `parseVikunjaRecurrence()` function to `SyncLib.swift` with nil-defaulting to 0
   - Added 8 unit tests covering all recurrence scenarios
   - Updated `SyncRunner.swift` and `scripts/mvp_sync.swift` to use the new function
+- **Fixed Issue 003: Alerts not syncing to Reminders**
+  - Root cause: EventKit may discard alarms added before first save
+  - Implemented save-fetch-modify-save pattern in `createReminder()`
+  - Save reminder first, re-fetch by ID, add alarms, save again
