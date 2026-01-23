@@ -23,7 +23,7 @@ Tracking issues identified during sync testing.
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
 | 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Medium-High | Open |
-| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | Open |
+| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | **Resolved** |
 | 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | High | Open |
 | 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | High | Open (Research) |
 
@@ -36,7 +36,7 @@ Tracking issues identified during sync testing.
 
 **Medium effort:**
 - ~~Issue 001: Add missing fields~~ **DONE** (flagged status not exposed by EventKit API)
-- Issue 008: URLs - add field, embed in description
+- ~~Issue 008: URLs~~ **DONE** (embedded in description with markers)
 
 **Needs design decision:**
 - Issue 006: Tags/Labels - different models between systems (hashtag encoding recommended)
@@ -46,12 +46,10 @@ Tracking issues identified during sync testing.
 ## Dependencies
 
 ```
-Issue 001 (notes field)
-    ├── Issue 006 (labels use notes for hashtags)
-    └── Issue 008 (URLs embed in description/notes)
+Issue 001 (notes field) ✅ DONE
+    ├── Issue 006 (labels use notes for hashtags) - ready to implement
+    └── Issue 008 (URLs embed in description/notes) ✅ DONE
 ```
-
-Complete Issue 001 before starting 006 or 008.
 
 ## Not Filed
 
