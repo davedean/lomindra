@@ -1,80 +1,88 @@
 # Issue 006: Tags/Labels not syncing
 
 **Severity:** Medium
-**Status:** Cannot Fix (API Limitation)
+**Status:** Open
 **Reported:** 2026-01-23
-**Closed:** 2026-01-23
+**Updated:** 2026-01-23
 
-## Resolution
+## Summary
 
-**EventKit does NOT expose tags added via the Reminders app UI.**
+Native Reminders tags cannot be accessed via EventKit (API limitation), but we can implement an **opt-in feature** to sync Vikunja labels as inline hashtags for users who manage labels programmatically (e.g., via agents).
 
-While the Reminders app (iOS 17+/macOS Sonoma+) supports native tags that users can add to reminders, this data is stored in Apple's private database and is **not accessible through the EventKit framework**.
+## Proposed Solution: Opt-in Hashtag Sync
 
-**Empirical verification:**
-- Added "NextAction" tag to "Call Bev to say hello" reminder via Reminders UI
-- Probed the reminder via EventKit - tag is invisible
-- `EKReminder` has no `tags`, `hashTags`, or similar properties
-- Selectors like `tags`, `hashTags`, `calendarItemTags` all return `false` for `responds(to:)`
+Add a settings toggle: **"Sync tags using inline text"** (default: OFF)
 
-**This means:**
-- Native tags users add in Reminders → Cannot be read by our app → Cannot sync to Vikunja
-- Vikunja labels → Could be written as hashtags in notes → But users expect native tags, not workarounds
+When enabled:
+- **Vikunja → Reminders:** Labels appear as `#label1 #label2` in the reminder
+- **Reminders → Vikunja:** Parse `#hashtag` text and create Vikunja labels
 
-**Conclusion:** Even if we implemented hashtag-in-notes as a workaround, users would naturally use the native Reminders tag feature (it's right there in the UI), and those tags would never sync. This defeats the purpose of "tag sync."
+### Tag Placement Rules
 
-## Why Workarounds Don't Work
+Tags should be placed in the **title** if the reminder has no notes, otherwise in **notes**:
 
-### Hashtag-in-notes approach
-Previously proposed: Parse `#hashtag` from notes, sync as Vikunja labels.
+```
+If notes is empty/nil:
+  title = "Original title #tag1 #tag2"
+  notes = nil
 
-**Problems:**
-1. Users won't type `#hashtags` in notes - they'll use the native tag UI
-2. Native tags are invisible to us, so we can't sync what users actually use
-3. Requires users to change their behavior, which defeats seamless sync
-4. Creates confusion: "Why don't my tags sync?" (because they used native tags)
+If notes exists:
+  title = "Original title"
+  notes = "Original notes\n\n#tag1 #tag2"
+```
 
-### Metadata preservation
-Store Vikunja labels in sync database, restore on round-trip.
+This keeps titles clean when notes are available, but still shows tags when there's no other text.
 
-**Problems:**
-1. Still can't read native Reminders tags
-2. One-way only (Vikunja → Reminders via hashtags in notes)
-3. Users would see `#work #urgent` in notes instead of native tags
-4. Poor UX compared to native tag support
+### Parsing Rules
 
-## The Fundamental Problem
+- **Extract tags:** Match `#[a-zA-Z0-9_-]+` patterns
+- **Strip tags:** Remove tag text from title/notes before comparing/syncing
+- **Round-trip safe:** Tags extracted and re-embedded should produce identical results
+
+## Why This Is Useful
+
+### Agent Workflows
+
+Users with automated agents (e.g., AI assistants managing tasks):
+1. Agent creates tasks in Vikunja with labels like `NextAction`, `Waiting`, `Project-X`
+2. Labels sync to Reminders as `#NextAction #Waiting #Project-X`
+3. User sees context in Reminders without opening Vikunja
+4. User can add `#NewTag` in Reminders notes → syncs back to Vikunja
+
+### GTD/Organization Enthusiasts
+
+Users who want consistent tag visibility across systems, accepting the text-based representation.
+
+## Limitations (Documented for Users)
+
+1. **Native Reminders tags don't sync** - Tags added via Reminders UI (the tag picker) are stored in Apple's private database and cannot be read by EventKit
+2. **Text-based only** - Tags appear as plain text `#hashtags`, not native tag chips
+3. **Requires user opt-in** - Default is OFF to avoid surprising users with hashtag text
+
+## API Limitation Details
 
 | System | Native Tags? | API Access? |
 |--------|--------------|-------------|
 | Apple Reminders | ✅ Yes (UI feature) | ❌ No (private database) |
 | Vikunja | ✅ Yes (labels) | ✅ Yes |
 
-Apple added tags to Reminders but didn't expose them through EventKit. This is a deliberate API design choice by Apple, not something we can work around.
+**Empirical verification (2026-01-23):**
+- Added "NextAction" tag to reminder via Reminders UI
+- Probed via EventKit - tag is invisible
+- `EKReminder` has no `tags`, `hashTags`, or similar properties
+- Native tags cannot be synced - this opt-in feature is for hashtag text only
 
-## User Guidance
+## Implementation Plan
 
-Tags/labels are system-specific:
-- **Reminders tags** stay in Reminders only
-- **Vikunja labels** stay in Vikunja only
+1. Add settings toggle: "Sync tags using inline text" (default OFF)
+2. Add `extractTagsFromText()` function - parse `#hashtag` patterns
+3. Add `embedTagsInText()` function - append tags to title or notes
+4. Add `stripTagsFromText()` function - remove tags for comparison
+5. Modify `CommonTask` construction to handle tag extraction/embedding
+6. Add unit tests for tag parsing/embedding
+7. Document the feature and its limitations
 
-Users who need tag organization should:
-1. Use Vikunja for tag-based workflows (labels fully supported there)
-2. Use Reminders lists for organization (lists DO sync as Vikunja projects)
+## Related
 
-## Original Problem Statement
-
-Vikunja labels are not synced to/from Apple Reminders.
-
-**Vikunja → Reminders:**
-- Task with labels `["urgent", "work"]` → Reminders has no tag representation
-
-**Reminders → Vikunja:**
-- Reminder with native tags → Tags invisible to EventKit → Cannot sync
-
-## References
-
-- Empirical probe: Tags added via Reminders UI are not visible to EventKit
-- `EKReminder` class has no tag-related properties
-- iOS 17+ hashtag display in notes is UI-only (not API-accessible)
-- Same limitation as attachments (Issue 010)
+- Issue 008: URLs - Cannot Fix (same EventKit limitation pattern for `EKReminder.url`)
+- Issue 010: Attachments - Cannot Fix (EventKit has no attachment API)
