@@ -234,15 +234,30 @@ struct SyncLogEntry {
 
 ## Acceptance Criteria
 
-- [ ] Frequency configurable via UI
-- [ ] Changes take effect without app restart
-- [ ] Background sync verified working at configured interval
-- [ ] Sync log captures all background sync attempts
+- [x] Frequency configurable via UI
+- [x] Changes take effect without app restart
+- [x] Background sync verified working at configured interval
+- [x] Sync log captures all background sync attempts
 - [ ] Failures handled gracefully with retry
-- [ ] Dev mode allows 1-minute intervals for testing
+- [x] Dev mode allows 1-minute intervals for testing
 - [ ] Release mode limits to reasonable intervals (15min+)
+
+## Completed (2026-01-23)
+
+- **Frequency configuration**: Added `syncFrequencyMinutes` to AppSettings with picker UI
+- **Options**: 1min, 5min (testing), 15min, 30min, 1hr, 2hr, 6hr
+- **Logs viewer**: Added SyncLogsView to browse all historical sync logs
+- **Keychain fix**: Token now uses `kSecAttrAccessibleAfterFirstUnlock` so background sync can read it when device is locked
+- **Verified working**: Background sync confirmed working on device
+
+## Remaining
+
+- Retry logic for transient failures (moved to Issue 015)
+- Release mode frequency limits (see Issue 013)
+- Smarter scheduling heuristics (see Issue 015)
 
 ## Related
 
 - Issue 013: Dev Mode vs Release Mode (frequency limits)
 - Issue 014: UI Polish (frequency selector placement)
+- Issue 015: Intelligent sync scheduling (smarter heuristics)
