@@ -1,8 +1,9 @@
 # Issue 001: Add missing fields to CommonTask (priority, notes, flags, completedAt)
 
 **Severity:** Medium-High
-**Status:** Partial (3/4 fields complete)
+**Status:** Complete (3/4 fields; flagged blocked by API limitation)
 **Reported:** 2026-01-23
+**Resolved:** 2026-01-23
 
 ## Progress
 
@@ -10,12 +11,20 @@
 |-------|-----------|---------|--------|
 | **Priority** | `EKReminder.priority` (0/1/5/9) | `Task.priority` (0-5) | ✅ Complete |
 | **Notes** | `EKReminder.notes` | `Task.description` | ✅ Complete |
-| **Flags** | `EKReminder.isFlagged` | `Task.is_favorite` | ⚠️ Vikunja→Reminders works; Reminders→Vikunja hardcoded to false |
+| **Flags** | N/A | `Task.is_favorite` | ⚠️ API Limitation (see below) |
 | **Completed At** | `EKReminder.completionDate` | `Task.done_at` | ✅ Complete |
 
-## Remaining Work
+## API Limitation: Flagged Status
 
-The `isFlagged` field is hardcoded to `false` in `fetchReminders()` with a TODO comment. Need to verify `EKReminder.isFlagged` API works correctly before enabling.
+**The "flagged" feature in Apple Reminders is NOT exposed via the EventKit API.**
+
+Verified by checking macOS SDK headers - no `isFlagged` property exists on `EKReminder` or `EKCalendarItem`. The Reminders app "Flagged" smart list is an internal feature not accessible to third-party apps.
+
+**Current behavior:**
+- Vikunja `is_favorite` → Reminders: Value is ignored (cannot set flag)
+- Reminders → Vikunja `is_favorite`: Always syncs as `false`
+
+This is an Apple API limitation, not a bug in the sync implementation.
 
 ## Original Problem
 

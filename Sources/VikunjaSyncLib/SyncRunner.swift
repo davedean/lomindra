@@ -204,7 +204,7 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             startIsDateOnly: dateComponentsIsDateOnly(reminder.startDateComponents),
             priority: reminder.priority,
             notes: reminder.notes,
-            isFlagged: false,  // TODO: EKReminder flag API needs research
+            isFlagged: false,  // Note: EKReminder flagged status not exposed via EventKit API
             completedAt: isoDate(reminder.completionDate)
         )
     }
@@ -1287,7 +1287,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 reminder.isCompleted = task.isCompleted
                 reminder.priority = task.priority ?? 0
                 reminder.notes = task.notes
-                // TODO: EKReminder flag API needs research - flagged sync not yet implemented
+                // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
                     reminder.completionDate = date
                 }
@@ -1345,7 +1345,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 item.isCompleted = task.isCompleted
                 item.priority = task.priority ?? 0
                 item.notes = task.notes
-                // TODO: EKReminder flag API needs research - flagged sync not yet implemented
+                // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
                     item.completionDate = date
                 } else if !task.isCompleted {
