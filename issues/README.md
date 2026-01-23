@@ -22,8 +22,8 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
-| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | **Resolved** |
+| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Low | **Open** (opt-in feature) |
+| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
 | 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | Low | **Resolved** |
 | 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
 
@@ -45,21 +45,22 @@ Tracking issues identified during sync testing.
 
 **Medium effort:**
 - ~~Issue 001: Add missing fields~~ **DONE** (flagged status not exposed by EventKit API)
-- ~~Issue 008: URLs~~ **DONE** (embedded in description with markers)
 
 **Recently resolved:**
 - ~~Issue 009: Locations~~ **DONE** - preserve location alarms during sync (don't overwrite)
 
+**Opt-in features (workarounds for API limitations):**
+- Issue 006: Tags/Labels - Vikunja labels ↔ hashtags in notes/title (opt-in)
+
 **Cannot fix (EventKit API limitations):**
-- ~~Issue 006: Tags/Labels~~ - Native Reminders tags not exposed by EventKit
+- ~~Issue 008: URLs~~ - `EKReminder.url` is broken (writes invisible in UI, UI writes unreadable)
 - ~~Issue 010: Attachments~~ - EventKit has no attachment API for reminders
 
 ## Dependencies
 
 ```
 Issue 001 (notes field) ✅ DONE
-    ├── Issue 006 (labels use notes for hashtags) - ready to implement
-    └── Issue 008 (URLs embed in description/notes) ✅ DONE
+    └── Issue 006 (labels use notes for hashtags) - ready to implement
 ```
 
 ## Not Filed

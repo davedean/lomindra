@@ -82,3 +82,18 @@
   - Fix: Normalize empty strings to nil before comparing notes and url fields
   - Fix: `stripUrlFromDescription()` now returns nil for empty/whitespace strings
   - Integration test now reaches steady state (0 updates post-apply)
+- **Issue 008 changed to Cannot Fix: EKReminder.url is broken**
+  - Discovered `EKReminder.url` is a non-functional API property
+  - URLs set via code don't show in Reminders app UI
+  - URLs added via Reminders app UI can't be read via code
+  - URLs shared from Safari/apps are stored as attachments (inaccessible)
+  - Confirmed by Stack Overflow: documented API bug since at least Feb 2025
+  - Removed all URL embedding code from SyncLib.swift and SyncRunner.swift
+  - Removed 16 URL-related unit tests
+  - User guidance: paste URLs as plain text in notes field
+- **Issue 006 reopened for opt-in tag sync feature**
+  - Native Reminders tags confirmed inaccessible via EventKit
+  - New approach: opt-in feature to sync Vikunja labels ↔ hashtags in text
+  - Tags placed in title if no notes exist, otherwise in notes
+  - Default OFF to avoid surprising users
+  - Useful for agent workflows managing Vikunja labels programmatically
