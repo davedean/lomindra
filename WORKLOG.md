@@ -62,3 +62,8 @@
   - Deleted `scripts/sync_lib.swift`, `scripts/mvp_sync.swift`, `scripts/sync_tests.swift`
   - Swift Package (`Sources/`) is now the only sync implementation
   - Updated CLAUDE.md, AGENTS.md, and issue files to remove legacy references
+- **Resolved Issue 001: isFlagged API limitation**
+  - Verified Apple Reminders "flagged" status is NOT exposed via EventKit API
+  - Checked macOS SDK headers - no `isFlagged` property on `EKReminder` or `EKCalendarItem`
+  - Documented limitation: Vikunja `is_favorite` cannot sync to/from Reminders flags
+  - Issue 001 marked complete (3/4 fields working; 1 blocked by Apple API)
