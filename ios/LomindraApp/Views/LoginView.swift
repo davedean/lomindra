@@ -81,7 +81,8 @@ struct LoginView: View {
                 vikunjaProjectId: appState.settings.vikunjaProjectId,
                 selectedRemindersIds: appState.settings.selectedRemindersIds,
                 projectOverrides: appState.settings.projectOverrides,
-                backgroundSyncEnabled: appState.settings.backgroundSyncEnabled
+                backgroundSyncEnabled: appState.settings.backgroundSyncEnabled,
+                syncFrequencyMinutes: appState.settings.syncFrequencyMinutes
             )
             appState.updateSettings(newSettings)
             appState.saveToken(token)

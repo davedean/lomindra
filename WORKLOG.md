@@ -97,3 +97,11 @@
   - Tags placed in title if no notes exist, otherwise in notes
   - Default OFF to avoid surprising users
   - Useful for agent workflows managing Vikunja labels programmatically
+- **Issue 012: Added configurable sync frequency to iOS app**
+  - Added `syncFrequencyMinutes` field to `AppSettings` (backwards compatible)
+  - Updated `BackgroundSyncManager` to use frequency from settings instead of hardcoded 6 hours
+  - Added frequency picker UI in Background section of SyncView
+  - Options: 1min, 5min (testing), 15min, 30min, 1hr, 2hr, 6hr
+  - Default is 1 hour
+  - Changing frequency reschedules background task automatically
+  - Sync logs already exist in Documents/sync-logs/ for debugging
