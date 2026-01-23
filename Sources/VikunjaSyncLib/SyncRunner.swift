@@ -1269,15 +1269,6 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     reminder.dueDateComponents = today
                     inferredDue = true
                 }
-                if !task.alarms.isEmpty {
-                    for alarm in task.alarms {
-                        if alarm.type == "absolute", let abs = alarm.absolute, let date = parseISODate(abs) {
-                            reminder.addAlarm(EKAlarm(absoluteDate: date))
-                        } else if alarm.type == "relative", let offset = alarm.relativeSeconds {
-                            reminder.addAlarm(EKAlarm(relativeOffset: TimeInterval(offset)))
-                        }
-                    }
-                }
                 if let recurrence = task.recurrence {
                     let frequency: EKRecurrenceFrequency
                     switch recurrence.frequency {
@@ -1289,8 +1280,27 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     }
                     reminder.addRecurrenceRule(EKRecurrenceRule(recurrenceWith: frequency, interval: recurrence.interval, end: nil))
                 }
+
+                // Save FIRST without alarms (EventKit may discard alarms added before first save)
                 try store.save(reminder, commit: true)
-                return (reminder.calendarItemIdentifier, inferredDue)
+                let reminderId = reminder.calendarItemIdentifier
+
+                // Add alarms after initial save using save-fetch-modify-save pattern
+                if !task.alarms.isEmpty {
+                    guard let savedReminder = store.calendarItem(withIdentifier: reminderId) as? EKReminder else {
+                        throw NSError(domain: "reminders", code: 5, userInfo: [NSLocalizedDescriptionKey: "Could not re-fetch reminder after save"])
+                    }
+                    for alarm in task.alarms {
+                        if alarm.type == "absolute", let abs = alarm.absolute, let date = parseISODate(abs) {
+                            savedReminder.addAlarm(EKAlarm(absoluteDate: date))
+                        } else if alarm.type == "relative", let offset = alarm.relativeSeconds {
+                            savedReminder.addAlarm(EKAlarm(relativeOffset: TimeInterval(offset)))
+                        }
+                    }
+                    try store.save(savedReminder, commit: true)
+                }
+
+                return (reminderId, inferredDue)
             }
 
             func updateReminder(id: String, from task: CommonTask, dateOnlyDue: Bool, dateOnlyStart: Bool) throws -> Bool {

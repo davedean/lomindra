@@ -1,8 +1,17 @@
 # Issue 003: Vikunja reminders not syncing to Reminders alerts
 
 **Severity:** Medium
-**Status:** Open
+**Status:** Resolved
 **Reported:** 2026-01-23
+**Resolved:** 2026-01-23
+
+## Resolution
+
+Fixed by implementing save-fetch-modify-save pattern in `createReminder()`. EventKit may discard alarms added to a new EKReminder before the first save. The fix saves the reminder first, re-fetches it by ID, then adds alarms and saves again.
+
+**Changes:**
+- Updated `createReminder()` in `Sources/VikunjaSyncLib/SyncRunner.swift`
+- Updated `createReminder()` in `scripts/mvp_sync.swift`
 
 ## Problem
 

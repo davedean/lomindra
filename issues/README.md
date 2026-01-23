@@ -14,7 +14,7 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 003 | [Vikunja reminders to alerts](003-vikunja-reminders-to-alerts.md) | Medium | Low | Open |
+| 003 | [Vikunja reminders to alerts](003-vikunja-reminders-to-alerts.md) | Medium | Low | **Resolved** |
 | 004 | [Recurrence not syncing](004-recurrence-not-syncing.md) | Medium | Low | **Resolved** |
 | 005 | [Spurious start_date added](005-spurious-start-date.md) | Low | Low | Open |
 
@@ -32,7 +32,7 @@ Tracking issues identified during sync testing.
 **Quick wins (Low complexity):**
 - ~~Issue 004: Recurrence - one guard condition fix~~ **DONE**
 - Issue 005: Spurious start_date - match create pattern in update
-- Issue 003: Alerts - save-fetch-modify-save pattern
+- ~~Issue 003: Alerts - save-fetch-modify-save pattern~~ **DONE**
 
 **Medium effort:**
 - Issue 001: Add missing fields - adds priority, notes, flags, completedAt to CommonTask (~12 locations)
