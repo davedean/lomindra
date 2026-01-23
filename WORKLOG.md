@@ -82,3 +82,38 @@
   - Fix: Normalize empty strings to nil before comparing notes and url fields
   - Fix: `stripUrlFromDescription()` now returns nil for empty/whitespace strings
   - Integration test now reaches steady state (0 updates post-apply)
+- **Issue 008 changed to Cannot Fix: EKReminder.url is broken**
+  - Discovered `EKReminder.url` is a non-functional API property
+  - URLs set via code don't show in Reminders app UI
+  - URLs added via Reminders app UI can't be read via code
+  - URLs shared from Safari/apps are stored as attachments (inaccessible)
+  - Confirmed by Stack Overflow: documented API bug since at least Feb 2025
+  - Removed all URL embedding code from SyncLib.swift and SyncRunner.swift
+  - Removed 16 URL-related unit tests
+  - User guidance: paste URLs as plain text in notes field
+- **Issue 006 reopened for opt-in tag sync feature**
+  - Native Reminders tags confirmed inaccessible via EventKit
+  - New approach: opt-in feature to sync Vikunja labels ↔ hashtags in text
+  - Tags placed in title if no notes exist, otherwise in notes
+  - Default OFF to avoid surprising users
+  - Useful for agent workflows managing Vikunja labels programmatically
+- **Issue 012: Added configurable sync frequency to iOS app**
+  - Added `syncFrequencyMinutes` field to `AppSettings` (backwards compatible)
+  - Updated `BackgroundSyncManager` to use frequency from settings instead of hardcoded 6 hours
+  - Added frequency picker UI in Background section of SyncView
+  - Options: 1min, 5min (testing), 15min, 30min, 1hr, 2hr, 6hr
+  - Default is 1 hour
+  - Changing frequency reschedules background task automatically
+  - Sync logs already exist in Documents/sync-logs/ for debugging
+- **Fixed keychain accessibility for background sync**
+  - Token was saved with default `kSecAttrAccessibleWhenUnlocked` - unreadable when device locked
+  - Background sync runs while device is locked, couldn't read token
+  - Changed to `kSecAttrAccessibleAfterFirstUnlock` - readable after first unlock
+  - Added migration function that re-saves existing tokens with new accessibility
+  - Migration runs on app startup to fix existing installs
+- **Added sync logs list view**
+  - New SyncLogsView shows all historical sync logs
+  - Each entry shows source (manual/background) and timestamp
+  - Tap to share/export individual logs
+  - Replaced single "Download Sync Log" with "View Sync Logs" menu item
+  - Helps debug background sync issues by viewing historical logs

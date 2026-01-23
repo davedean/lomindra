@@ -1,10 +1,70 @@
 # Issue 010: Attachments not syncing
 
 **Severity:** Medium
-**Status:** Open (Research Needed)
+**Status:** Cannot Fix (API Limitation)
 **Reported:** 2026-01-23
+**Closed:** 2026-01-23
 
-## Problem
+## Resolution
+
+**EventKit does NOT expose an attachments API for EKReminder.**
+
+While the Reminders.app UI supports file attachments (you can add images and files to reminders), this data is stored in a private database that Apple does not expose through the EventKit framework.
+
+**This is a hard platform limitation, not something we can work around.**
+
+## Research Findings
+
+### EventKit Attachment Support
+
+- `EKReminder` inherits from `EKCalendarItem`
+- `EKCalendarItem` has NO `attachments` property for reminders
+- `EKEvent` (calendar events) does have attachment support, but `EKReminder` does not
+- Third-party apps **cannot read OR write** reminder attachments
+- This is confirmed by examining:
+  - Apple's EventKit documentation
+  - The apple-reminders-cli project (no attachment support)
+  - Our own probe scripts (no attachment properties available)
+
+### Vikunja Attachment Support
+
+Vikunja fully supports attachments via its API:
+- `GET /api/v1/tasks/{taskId}/attachments` - list attachments
+- `POST /api/v1/tasks/{taskId}/attachments` - upload (multipart/form-data)
+- `GET /api/v1/tasks/{taskId}/attachments/{attachmentId}` - download
+- `DELETE /api/v1/tasks/{taskId}/attachments/{attachmentId}` - delete
+
+But this is irrelevant since we can't access Reminders attachments.
+
+## Why Workarounds Don't Work
+
+### Option: Store Vikunja attachment URLs in Reminders notes
+- Links would appear as plain text, not actual attachments
+- Can't sync back (can't read from Reminders to know what changed)
+- Poor user experience
+
+### Option: Metadata preservation in sync database
+- Could store Vikunja attachment metadata when syncing to Reminders
+- But can't detect if user adds attachment in Reminders
+- Can't read attachment data to sync to Vikunja
+- Breaks the bidirectional sync model
+
+## Conclusion
+
+**Attachment syncing is not feasible** due to Apple's API design choice.
+
+If Apple adds attachment support to EventKit in a future macOS/iOS version, this could be revisited. Until then, attachments should be documented as an unsupported feature.
+
+## User Guidance
+
+Users who rely on attachments have two options:
+
+1. **Use Vikunja for attachments** - Add attachments in Vikunja web/app; they won't appear in Reminders but will be accessible in Vikunja
+2. **Use Reminders for attachments** - Add attachments in Reminders; they won't sync to Vikunja but will stay in Reminders
+
+Attachments added in either system remain in that system only.
+
+## Original Problem Statement
 
 Attachments on tasks are not synced between systems.
 
@@ -14,144 +74,8 @@ Attachments on tasks are not synced between systems.
 **Vikunja → Reminders:**
 - Task with attachments → Reminders has no attachments
 
-## Analysis
+## References
 
-### Apple Reminders Attachments
-
-**Support:** Partial, OS-dependent
-
-- Attachments added in iOS 13+ / macOS Catalina+
-- EventKit support unclear - may require newer APIs
-- Not tested in current `ekreminder_probe.swift`
-
-**Research needed:**
-- What EventKit API exposes attachments on EKReminder?
-- Are attachments readable/writable via EventKit?
-- What file types are supported?
-
-### Vikunja Attachments
-
-**Support:** Full API support via separate endpoints
-
-From `docs/vikunja-model.md`:
-```
-models.TaskAttachment:
-- id (integer)
-- task_id (integer)
-- created (string, timestamp)
-- created_by (user.User)
-- file (files.File)
-```
-
-**Key points:**
-- Attachments are read-only in task response
-- Require separate endpoints to upload/download
-- Files are stored on Vikunja server
-
-### Complexity
-
-**High** - This is not a simple field mapping:
-
-1. **File transfer required** - Need to download from one system, upload to other
-2. **Storage differences** - Reminders uses iCloud, Vikunja uses its own storage
-3. **API complexity** - Separate endpoints, multipart uploads
-4. **Size limits** - Both systems may have different limits
-5. **File type support** - May differ between systems
-
-## Possible Approaches
-
-### Option A: Full bidirectional sync
-- Download attachments from source system
-- Upload to target system
-- Track attachment mappings in sync database
-- **Pro:** Complete feature parity
-- **Con:** Complex, bandwidth-heavy, storage duplication
-
-### Option B: Link-only sync
-- Store Vikunja attachment URLs in Reminders notes
-- Store Reminders attachment references in Vikunja description
-- **Pro:** Simple, no file transfer
-- **Con:** Links may not work across systems, not true attachments
-
-### Option C: Metadata preservation only
-- Store attachment metadata in sync database
-- Restore when syncing back to original system
-- Don't transfer files between systems
-- **Pro:** Round-trip safe, no bandwidth
-- **Con:** Attachments only visible in original system
-
-### Option D: Skip for MVP
-- Document as unsupported
-- **Pro:** Simplest
-- **Con:** Feature gap
-
-## Research Tasks
-
-Before implementing, need to investigate:
-
-1. [ ] Test EventKit attachment APIs on recent macOS
-2. [ ] Determine if EKReminder exposes attachments
-3. [ ] Test Vikunja attachment upload/download endpoints
-4. [ ] Measure typical attachment sizes
-5. [ ] Evaluate bandwidth/storage implications
-
-## Required Changes (if implementing Option A)
-
-### 1. Add CommonAttachment struct
-
-**File:** `Sources/VikunjaSyncLib/SyncLib.swift`
-
-```swift
-public struct CommonAttachment: Codable, Equatable {
-    public let id: String
-    public let filename: String
-    public let mimeType: String?
-    public let size: Int?
-    public let url: String?  // For download
-    public let localPath: String?  // For upload
-}
-```
-
-### 2. Add attachments to CommonTask
-
-```swift
-public struct CommonTask {
-    // ... existing fields ...
-    public let attachments: [CommonAttachment]
-}
-```
-
-### 3. Implement attachment transfer functions
-
-```swift
-func downloadVikunjaAttachment(taskId: Int, attachmentId: Int) -> Data?
-func uploadVikunjaAttachment(taskId: Int, filename: String, data: Data) -> Int?
-func downloadRemindersAttachment(reminder: EKReminder, attachmentId: String) -> Data?
-func addRemindersAttachment(reminder: EKReminder, filename: String, data: Data) -> Bool
-```
-
-### 4. Add attachment sync logic
-
-- During sync, compare attachment lists
-- Download missing attachments from source
-- Upload to target system
-- Track mappings in sync database
-
-## Acceptance Criteria (if implementing)
-
-- [ ] EventKit attachment API researched and documented
-- [ ] Vikunja attachment endpoints tested
-- [ ] Attachments sync from Reminders to Vikunja
-- [ ] Attachments sync from Vikunja to Reminders
-- [ ] Round-trip preserves attachments
-- [ ] Large attachments handled gracefully (or rejected with warning)
-- [ ] Duplicate attachments not created on re-sync
-
-## Recommendation
-
-**Start with Option D (Skip) or Option C (Metadata preservation)** until:
-1. EventKit attachment support is confirmed
-2. There's user demand for this feature
-3. Bandwidth/storage implications are understood
-
-This is a "nice to have" feature, not critical for core sync functionality.
+- Apple EventKit Documentation: https://developer.apple.com/documentation/eventkit
+- EKReminder Class Reference: https://developer.apple.com/documentation/eventkit/ekreminder
+- Comparison with apple-reminders-cli: No attachment support (same limitation)

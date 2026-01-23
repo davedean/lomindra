@@ -205,8 +205,7 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             priority: reminder.priority,
             notes: reminder.notes,
             isFlagged: false,  // Note: EKReminder flagged status not exposed via EventKit API
-            completedAt: isoDate(reminder.completionDate),
-            url: reminder.url?.absoluteString
+            completedAt: isoDate(reminder.completionDate)
         )
     }
 }
@@ -425,9 +424,6 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             return CommonAlarm(type: "relative", absolute: nil, relativeSeconds: reminder.relative_period, relativeTo: reminder.relative_to)
         }
         let recurrence = parseVikunjaRecurrence(repeatAfter: $0.repeat_after, repeatMode: $0.repeat_mode)
-        // Extract embedded URL from description
-        let extractedUrl = extractUrlFromDescription($0.description)
-        let cleanNotes = stripUrlFromDescription($0.description)
         return CommonTask(
             source: "vikunja",
             id: String($0.id),
@@ -442,10 +438,9 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             dueIsDateOnly: isDateOnlyString($0.due_date),
             startIsDateOnly: isDateOnlyString($0.start_date),
             priority: vikunjaPriorityToReminders($0.priority),
-            notes: cleanNotes,
+            notes: $0.description,
             isFlagged: $0.is_favorite ?? false,
-            completedAt: $0.done_at,
-            url: extractedUrl
+            completedAt: $0.done_at
         )
     }
 }
@@ -1175,10 +1170,8 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     "priority": remindersPriorityToVikunja(task.priority),
                     "is_favorite": task.isFlagged
                 ]
-                // Embed URL in description if present
-                let description = embedUrlInDescription(description: task.notes, url: task.url)
-                if let desc = description, !desc.isEmpty {
-                    payload["description"] = desc
+                if let notes = task.notes, !notes.isEmpty {
+                    payload["description"] = notes
                 }
                 if let completedAt = task.completedAt {
                     payload["done_at"] = completedAt
@@ -1222,14 +1215,12 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             }
 
             func updateVikunjaTask(id: String, from task: CommonTask, inferredDue: Bool) throws {
-                // Embed URL in description if present
-                let description = embedUrlInDescription(description: task.notes, url: task.url) ?? ""
                 var payload: [String: Any] = [
                     "title": task.title,
                     "done": task.isCompleted,
                     "priority": remindersPriorityToVikunja(task.priority),
                     "is_favorite": task.isFlagged,
-                    "description": description
+                    "description": task.notes ?? ""
                 ]
                 if task.isCompleted, let completedAt = task.completedAt {
                     payload["done_at"] = completedAt
@@ -1296,9 +1287,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 reminder.isCompleted = task.isCompleted
                 reminder.priority = task.priority ?? 0
                 reminder.notes = task.notes
-                if let urlString = task.url, let url = URL(string: urlString) {
-                    reminder.url = url
-                }
+                // Note: EKReminder.url is broken - writes don't show in UI, UI writes can't be read
                 // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
                     reminder.completionDate = date
@@ -1360,11 +1349,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 item.isCompleted = task.isCompleted
                 item.priority = task.priority ?? 0
                 item.notes = task.notes
-                if let urlString = task.url, let url = URL(string: urlString) {
-                    item.url = url
-                } else {
-                    item.url = nil
-                }
+                // Note: EKReminder.url is broken - writes don't show in UI, UI writes can't be read
                 // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
                     item.completionDate = date
@@ -1388,9 +1373,13 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     item.dueDateComponents = today
                     inferredDue = true
                 }
+                // Remove only time-based alarms; preserve location-based alarms
+                // (Vikunja doesn't support locations, so we keep them untouched)
                 if let existingAlarms = item.alarms {
                     for alarm in existingAlarms {
-                        item.removeAlarm(alarm)
+                        if alarm.structuredLocation == nil {
+                            item.removeAlarm(alarm)
+                        }
                     }
                 }
                 if !task.alarms.isEmpty {

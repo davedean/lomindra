@@ -7,6 +7,8 @@ struct LomindraApp: App {
 
     init() {
         BackgroundSyncManager.shared.register()
+        // Migrate existing token to new accessibility level (allows reading when device is locked)
+        KeychainStore().migrateTokenAccessibility()
     }
 
     var body: some Scene {

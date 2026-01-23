@@ -22,10 +22,20 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Medium-High | Open |
-| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | **Resolved** |
-| 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | High | Open |
-| 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | High | Open (Research) |
+| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Low | **Open** (opt-in feature) |
+| 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
+| 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | Low | **Resolved** |
+| 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
+
+### App Polish / UX
+
+| # | Issue | Severity | Complexity | Status |
+|---|-------|----------|------------|--------|
+| 011 | [Vikunja Cloud easy onboarding](011-vikunja-cloud-onboarding.md) | Low | Low-Medium | Open (Pending feedback) |
+| 012 | [Background sync improvements](012-background-sync-improvements.md) | High | Medium | **Partial** (frequency done) |
+| 013 | [Dev mode vs release mode](013-dev-mode-release-mode.md) | Medium | Low | Open |
+| 014 | [UI polish and settings](014-ui-polish-settings.md) | Medium | Medium | Open |
+| 015 | [Intelligent sync scheduling](015-intelligent-sync-scheduling.md) | Low | Medium | Open |
 
 ## Summary
 
@@ -36,19 +46,22 @@ Tracking issues identified during sync testing.
 
 **Medium effort:**
 - ~~Issue 001: Add missing fields~~ **DONE** (flagged status not exposed by EventKit API)
-- ~~Issue 008: URLs~~ **DONE** (embedded in description with markers)
 
-**Needs design decision:**
-- Issue 006: Tags/Labels - different models between systems (hashtag encoding recommended)
-- Issue 009: Locations - fundamental feature gap (metadata preservation recommended)
-- Issue 010: Attachments - requires research into EventKit attachment APIs
+**Recently resolved:**
+- ~~Issue 009: Locations~~ **DONE** - preserve location alarms during sync (don't overwrite)
+
+**Opt-in features (workarounds for API limitations):**
+- Issue 006: Tags/Labels - Vikunja labels ↔ hashtags in notes/title (opt-in)
+
+**Cannot fix (EventKit API limitations):**
+- ~~Issue 008: URLs~~ - `EKReminder.url` is broken (writes invisible in UI, UI writes unreadable)
+- ~~Issue 010: Attachments~~ - EventKit has no attachment API for reminders
 
 ## Dependencies
 
 ```
 Issue 001 (notes field) ✅ DONE
-    ├── Issue 006 (labels use notes for hashtags) - ready to implement
-    └── Issue 008 (URLs embed in description/notes) ✅ DONE
+    └── Issue 006 (labels use notes for hashtags) - ready to implement
 ```
 
 ## Not Filed
