@@ -15,7 +15,9 @@ final class KeychainStore {
             kSecAttrAccount as String: account
         ]
         let attributes: [String: Any] = [
-            kSecValueData as String: data
+            kSecValueData as String: data,
+            // Allow reading token when device is locked (needed for background sync)
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
         SecItemDelete(query as CFDictionary)
         SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil)
@@ -44,5 +46,13 @@ final class KeychainStore {
             kSecAttrAccount as String: account
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    /// Migrate existing token to new accessibility level (needed for background sync)
+    /// Call this on app startup to ensure token is readable when device is locked
+    func migrateTokenAccessibility() {
+        guard let existingToken = readToken() else { return }
+        // Re-save with new accessibility level
+        saveToken(existingToken)
     }
 }
