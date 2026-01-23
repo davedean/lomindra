@@ -48,3 +48,6 @@
   - Root cause: EventKit may discard alarms added before first save
   - Implemented save-fetch-modify-save pattern in `createReminder()`
   - Save reminder first, re-fetch by ID, add alarms, save again
+- **Fixed Issue 005: Spurious start_date added on sync**
+  - Root cause: Unconditional assignment in `updateReminder()` didn't properly clear nil dates
+  - Changed to explicit guarded assignments with nil clearing

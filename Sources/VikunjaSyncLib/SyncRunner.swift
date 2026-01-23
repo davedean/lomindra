@@ -1309,8 +1309,17 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 }
                 item.title = task.title
                 item.isCompleted = task.isCompleted
-                item.dueDateComponents = dateComponentsFromISO(task.due, dateOnly: dateOnlyDue)
-                item.startDateComponents = dateComponentsFromISO(task.start, dateOnly: dateOnlyStart)
+                // Use explicit nil assignment to ensure dates are properly cleared
+                if let due = dateComponentsFromISO(task.due, dateOnly: dateOnlyDue) {
+                    item.dueDateComponents = due
+                } else {
+                    item.dueDateComponents = nil
+                }
+                if let start = dateComponentsFromISO(task.start, dateOnly: dateOnlyStart) {
+                    item.startDateComponents = start
+                } else {
+                    item.startDateComponents = nil
+                }
                 var inferredDue = false
                 if task.recurrence != nil && item.dueDateComponents == nil {
                     let today = Calendar.current.dateComponents([.year, .month, .day], from: Date())
