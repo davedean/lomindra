@@ -201,7 +201,11 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: dateComponentsIsDateOnly(reminder.dueDateComponents),
-            startIsDateOnly: dateComponentsIsDateOnly(reminder.startDateComponents)
+            startIsDateOnly: dateComponentsIsDateOnly(reminder.startDateComponents),
+            priority: reminder.priority,
+            notes: reminder.notes,
+            isFlagged: false,  // TODO: EKReminder flag API needs research
+            completedAt: isoDate(reminder.completionDate)
         )
     }
 }
@@ -223,12 +227,16 @@ struct VikunjaTask: Decodable {
     let id: Int
     let title: String
     let done: Bool?
+    let done_at: String?
     let due_date: String?
     let start_date: String?
     let updated: String?
     let reminders: [VikunjaReminder]?
     let repeat_after: Int?
     let repeat_mode: Int?
+    let priority: Int?
+    let description: String?
+    let is_favorite: Bool?
 }
 
 struct VikunjaReminder: Decodable {
@@ -428,7 +436,11 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: isDateOnlyString($0.due_date),
-            startIsDateOnly: isDateOnlyString($0.start_date)
+            startIsDateOnly: isDateOnlyString($0.start_date),
+            priority: vikunjaPriorityToReminders($0.priority),
+            notes: $0.description,
+            isFlagged: $0.is_favorite ?? false,
+            completedAt: $0.done_at
         )
     }
 }
@@ -1154,8 +1166,16 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             func createVikunjaTask(from task: CommonTask) throws -> Int {
                 var payload: [String: Any] = [
                     "title": task.title,
-                    "done": task.isCompleted
+                    "done": task.isCompleted,
+                    "priority": remindersPriorityToVikunja(task.priority),
+                    "is_favorite": task.isFlagged
                 ]
+                if let notes = task.notes, !notes.isEmpty {
+                    payload["description"] = notes
+                }
+                if let completedAt = task.completedAt {
+                    payload["done_at"] = completedAt
+                }
                 if let due = vikunjaDateString(from: task.due) {
                     payload["due_date"] = due
                 }
@@ -1197,8 +1217,16 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             func updateVikunjaTask(id: String, from task: CommonTask, inferredDue: Bool) throws {
                 var payload: [String: Any] = [
                     "title": task.title,
-                    "done": task.isCompleted
+                    "done": task.isCompleted,
+                    "priority": remindersPriorityToVikunja(task.priority),
+                    "is_favorite": task.isFlagged,
+                    "description": task.notes ?? ""
                 ]
+                if task.isCompleted, let completedAt = task.completedAt {
+                    payload["done_at"] = completedAt
+                } else if !task.isCompleted {
+                    payload["done_at"] = NSNull()
+                }
                 if !inferredDue, let due = vikunjaDateString(from: task.due) {
                     payload["due_date"] = due
                 } else {
@@ -1257,6 +1285,12 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 reminder.calendar = calendar
                 reminder.title = task.title
                 reminder.isCompleted = task.isCompleted
+                reminder.priority = task.priority ?? 0
+                reminder.notes = task.notes
+                // TODO: EKReminder flag API needs research - flagged sync not yet implemented
+                if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
+                    reminder.completionDate = date
+                }
                 if let due = dateComponentsFromISO(task.due, dateOnly: isDateOnlyString(task.due)) {
                     reminder.dueDateComponents = due
                 }
@@ -1309,6 +1343,14 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 }
                 item.title = task.title
                 item.isCompleted = task.isCompleted
+                item.priority = task.priority ?? 0
+                item.notes = task.notes
+                // TODO: EKReminder flag API needs research - flagged sync not yet implemented
+                if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
+                    item.completionDate = date
+                } else if !task.isCompleted {
+                    item.completionDate = nil
+                }
                 // Use explicit nil assignment to ensure dates are properly cleared
                 if let due = dateComponentsFromISO(task.due, dateOnly: dateOnlyDue) {
                     item.dueDateComponents = due

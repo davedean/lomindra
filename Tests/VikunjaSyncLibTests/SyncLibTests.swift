@@ -16,7 +16,11 @@ final class SyncLibTests: XCTestCase {
         alarms: [CommonAlarm] = [],
         recurrence: CommonRecurrence? = nil,
         dueIsDateOnly: Bool? = nil,
-        startIsDateOnly: Bool? = nil
+        startIsDateOnly: Bool? = nil,
+        priority: Int? = nil,
+        notes: String? = nil,
+        isFlagged: Bool = false,
+        completedAt: String? = nil
     ) -> CommonTask {
         return CommonTask(
             source: source,
@@ -30,7 +34,11 @@ final class SyncLibTests: XCTestCase {
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: dueIsDateOnly,
-            startIsDateOnly: startIsDateOnly
+            startIsDateOnly: startIsDateOnly,
+            priority: priority,
+            notes: notes,
+            isFlagged: isFlagged,
+            completedAt: completedAt
         )
     }
 
@@ -518,5 +526,50 @@ final class SyncLibTests: XCTestCase {
         XCTAssertNotNil(result, "Bi-weekly should work when repeat_mode is nil")
         XCTAssertEqual(result?.frequency, "weekly")
         XCTAssertEqual(result?.interval, 2)
+    }
+
+    // MARK: - Priority Mapping Tests
+
+    func testRemindersPriorityToVikunja() {
+        XCTAssertEqual(remindersPriorityToVikunja(1), 3)   // high
+        XCTAssertEqual(remindersPriorityToVikunja(5), 2)   // medium
+        XCTAssertEqual(remindersPriorityToVikunja(9), 1)   // low
+        XCTAssertEqual(remindersPriorityToVikunja(0), 0)   // none
+        XCTAssertEqual(remindersPriorityToVikunja(nil), 0) // nil
+    }
+
+    func testVikunjaPriorityToReminders() {
+        XCTAssertEqual(vikunjaPriorityToReminders(0), 0)   // none
+        XCTAssertEqual(vikunjaPriorityToReminders(1), 9)   // low
+        XCTAssertEqual(vikunjaPriorityToReminders(2), 5)   // medium
+        XCTAssertEqual(vikunjaPriorityToReminders(3), 1)   // high
+        XCTAssertEqual(vikunjaPriorityToReminders(5), 1)   // high (clamped)
+        XCTAssertEqual(vikunjaPriorityToReminders(nil), 0) // nil
+    }
+
+    // MARK: - New Field Diff Detection Tests
+
+    func testTasksDifferDetectsPriorityChange() {
+        let task1 = makeTask(priority: 1)
+        let task2 = makeTask(priority: 5)
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferDetectsNotesChange() {
+        let task1 = makeTask(notes: "Original notes")
+        let task2 = makeTask(notes: "Updated notes")
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferDetectsFlagChange() {
+        let task1 = makeTask(isFlagged: false)
+        let task2 = makeTask(isFlagged: true)
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferReturnsFalseWhenAllFieldsMatch() {
+        let task1 = makeTask(priority: 1, notes: "Test", isFlagged: true)
+        let task2 = makeTask(priority: 1, notes: "Test", isFlagged: true)
+        XCTAssertFalse(tasksDiffer(task1, task2))
     }
 }
