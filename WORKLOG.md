@@ -34,3 +34,13 @@
 - Filtered Reminders lists to standard, writable lists and added per-list sync toggles with project mapping.
 - Added `scripts/login_probe.swift` for API login checks using env vars.
 - Updated `PROJECT_PLAN.md` to mark iOS app startup and login progress; added build-validation note in `AGENTS.md`.
+
+## 2026-01-23: Issue Tracking & Recurrence Fix
+- Created `issues/` directory with 8 tracked issues from sync testing
+- Performed comprehensive field audit (`issues/000-field-audit.md`)
+- **Fixed Issue 004: Recurrence not syncing**
+  - Root cause: Guard required both `repeat_after` AND `repeat_mode` to be non-nil
+  - Vikunja often returns `repeat_mode: null` for time-based recurrence
+  - Added `parseVikunjaRecurrence()` function to `SyncLib.swift` with nil-defaulting to 0
+  - Added 8 unit tests covering all recurrence scenarios
+  - Updated `SyncRunner.swift` and `scripts/mvp_sync.swift` to use the new function

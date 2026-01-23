@@ -367,6 +367,33 @@ public func recurrenceSignature(_ recurrence: CommonRecurrence?) -> String {
     return "\(recurrence.frequency)|\(recurrence.interval)"
 }
 
+/// Parse Vikunja repeat_after and repeat_mode into CommonRecurrence
+/// - Parameters:
+///   - repeatAfter: Seconds between repetitions (nil = no recurrence)
+///   - repeatMode: 0 = time-based, 1 = monthly, 2 = from completion (nil defaults to 0)
+/// - Returns: CommonRecurrence or nil if no valid recurrence
+public func parseVikunjaRecurrence(repeatAfter: Int?, repeatMode: Int?) -> CommonRecurrence? {
+    let mode = repeatMode ?? 0  // Default to time-based if nil
+
+    // Mode 1 = monthly (ignore repeat_after)
+    if mode == 1 {
+        return CommonRecurrence(frequency: "monthly", interval: 1)
+    }
+
+    // Mode 0 (or nil) = time-based: need repeat_after
+    guard let repeatAfter = repeatAfter, repeatAfter > 0 else {
+        return nil
+    }
+
+    if repeatAfter % 604800 == 0 {
+        return CommonRecurrence(frequency: "weekly", interval: repeatAfter / 604800)
+    } else if repeatAfter % 86400 == 0 {
+        return CommonRecurrence(frequency: "daily", interval: repeatAfter / 86400)
+    }
+
+    return nil
+}
+
 public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [ConflictFieldDiff] {
     var diffs: [ConflictFieldDiff] = []
     func addDiff(field: String, reminders: String, vikunja: String) {

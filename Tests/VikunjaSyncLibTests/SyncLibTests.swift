@@ -458,4 +458,65 @@ final class SyncLibTests: XCTestCase {
         let error = NSError(domain: "vikunja", code: 401, userInfo: nil)
         XCTAssertFalse(shouldRetryVikunjaRequest(error: error))
     }
+
+    // MARK: - parseVikunjaRecurrence Tests
+
+    func testParseVikunjaRecurrenceReturnsNilWhenNoRepeatAfter() {
+        XCTAssertNil(parseVikunjaRecurrence(repeatAfter: nil, repeatMode: nil))
+        XCTAssertNil(parseVikunjaRecurrence(repeatAfter: nil, repeatMode: 0))
+    }
+
+    func testParseVikunjaRecurrenceDailyWithRepeatModeZero() {
+        let result = parseVikunjaRecurrence(repeatAfter: 86400, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceDailyWithRepeatModeNil() {
+        // BUG TEST: This should work but fails with current code
+        // Vikunja often returns repeat_mode as null for time-based recurrence
+        let result = parseVikunjaRecurrence(repeatAfter: 86400, repeatMode: nil)
+        XCTAssertNotNil(result, "Daily recurrence should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceWeeklyWithRepeatModeNil() {
+        // BUG TEST: This should work but fails with current code
+        let result = parseVikunjaRecurrence(repeatAfter: 604800, repeatMode: nil)
+        XCTAssertNotNil(result, "Weekly recurrence should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceWeeklyWithRepeatModeZero() {
+        let result = parseVikunjaRecurrence(repeatAfter: 604800, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceMonthly() {
+        let result = parseVikunjaRecurrence(repeatAfter: 0, repeatMode: 1)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "monthly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceMultiDayInterval() {
+        // Every 3 days
+        let result = parseVikunjaRecurrence(repeatAfter: 259200, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 3)
+    }
+
+    func testParseVikunjaRecurrenceBiweekly() {
+        // Every 2 weeks
+        let result = parseVikunjaRecurrence(repeatAfter: 1209600, repeatMode: nil)
+        XCTAssertNotNil(result, "Bi-weekly should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 2)
+    }
 }
