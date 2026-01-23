@@ -35,8 +35,13 @@ public struct CommonTask {
     public let recurrence: CommonRecurrence?
     public let dueIsDateOnly: Bool?
     public let startIsDateOnly: Bool?
+    public let priority: Int?
+    public let notes: String?
+    public let isFlagged: Bool
+    public let completedAt: String?
+    public let url: String?
 
-    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?) {
+    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil, url: String? = nil) {
         self.source = source
         self.id = id
         self.listId = listId
@@ -49,6 +54,11 @@ public struct CommonTask {
         self.recurrence = recurrence
         self.dueIsDateOnly = dueIsDateOnly
         self.startIsDateOnly = startIsDateOnly
+        self.priority = priority
+        self.notes = notes
+        self.isFlagged = isFlagged
+        self.completedAt = completedAt
+        self.url = url
     }
 }
 
@@ -308,6 +318,82 @@ public func relativeToForVikunja(_ value: String?) -> String {
     return normalized == "none" ? "due_date" : normalized
 }
 
+// MARK: - Priority Mapping
+
+/// Convert Reminders priority (0/1/5/9) to Vikunja priority (0-3)
+public func remindersPriorityToVikunja(_ priority: Int?) -> Int {
+    guard let p = priority else { return 0 }
+    switch p {
+    case 1: return 3      // high
+    case 5: return 2      // medium
+    case 9: return 1      // low
+    default: return 0     // none
+    }
+}
+
+/// Convert Vikunja priority (0-5) to Reminders priority (0/1/5/9)
+public func vikunjaPriorityToReminders(_ priority: Int?) -> Int {
+    guard let p = priority else { return 0 }
+    switch p {
+    case 0: return 0      // none
+    case 1: return 9      // low
+    case 2: return 5      // medium
+    case 3...: return 1   // high (3, 4, 5 all map to high)
+    default: return 0
+    }
+}
+
+// MARK: - URL Embedding
+
+private let urlStartMarker = "---URL_START---"
+private let urlEndMarker = "---URL_END---"
+
+/// Embed URL at the beginning of description using markers
+public func embedUrlInDescription(description: String?, url: String?) -> String? {
+    guard let url = url, !url.isEmpty else { return description }
+    let urlBlock = "\(urlStartMarker)\n\(url)\n\(urlEndMarker)"
+    if let desc = description, !desc.isEmpty {
+        return "\(urlBlock)\n\(desc)"
+    }
+    return urlBlock
+}
+
+/// Extract URL from description that was embedded with markers
+public func extractUrlFromDescription(_ description: String?) -> String? {
+    guard let desc = description,
+          let startRange = desc.range(of: urlStartMarker),
+          let endRange = desc.range(of: urlEndMarker),
+          startRange.upperBound < endRange.lowerBound else { return nil }
+
+    let urlStart = desc.index(after: startRange.upperBound)
+    let urlEnd = desc.index(before: endRange.lowerBound)
+    guard urlStart <= urlEnd else { return nil }
+
+    let extracted = String(desc[urlStart...urlEnd]).trimmingCharacters(in: .whitespacesAndNewlines)
+    return extracted.isEmpty ? nil : extracted
+}
+
+/// Remove URL block from description, returning the clean description
+public func stripUrlFromDescription(_ description: String?) -> String? {
+    guard let desc = description, !desc.isEmpty else { return nil }
+    guard let startRange = desc.range(of: urlStartMarker),
+          let endRange = desc.range(of: urlEndMarker) else {
+        // No URL block, return original (normalized to nil if empty)
+        let trimmed = desc.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    var result = desc
+    // Find the end of the URL block (including trailing newline if present)
+    var endIndex = endRange.upperBound
+    if endIndex < desc.endIndex && desc[endIndex] == "\n" {
+        endIndex = desc.index(after: endIndex)
+    }
+    result.removeSubrange(startRange.lowerBound..<endIndex)
+    let trimmed = result.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+}
+
 // MARK: - Signatures for Comparison
 
 public func signature(_ task: CommonTask) -> String {
@@ -367,6 +453,33 @@ public func recurrenceSignature(_ recurrence: CommonRecurrence?) -> String {
     return "\(recurrence.frequency)|\(recurrence.interval)"
 }
 
+/// Parse Vikunja repeat_after and repeat_mode into CommonRecurrence
+/// - Parameters:
+///   - repeatAfter: Seconds between repetitions (nil = no recurrence)
+///   - repeatMode: 0 = time-based, 1 = monthly, 2 = from completion (nil defaults to 0)
+/// - Returns: CommonRecurrence or nil if no valid recurrence
+public func parseVikunjaRecurrence(repeatAfter: Int?, repeatMode: Int?) -> CommonRecurrence? {
+    let mode = repeatMode ?? 0  // Default to time-based if nil
+
+    // Mode 1 = monthly (ignore repeat_after)
+    if mode == 1 {
+        return CommonRecurrence(frequency: "monthly", interval: 1)
+    }
+
+    // Mode 0 (or nil) = time-based: need repeat_after
+    guard let repeatAfter = repeatAfter, repeatAfter > 0 else {
+        return nil
+    }
+
+    if repeatAfter % 604800 == 0 {
+        return CommonRecurrence(frequency: "weekly", interval: repeatAfter / 604800)
+    } else if repeatAfter % 86400 == 0 {
+        return CommonRecurrence(frequency: "daily", interval: repeatAfter / 86400)
+    }
+
+    return nil
+}
+
 public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [ConflictFieldDiff] {
     var diffs: [ConflictFieldDiff] = []
     func addDiff(field: String, reminders: String, vikunja: String) {
@@ -383,6 +496,10 @@ public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [C
     addDiff(field: "startDateOnly", reminders: String(reminders.startIsDateOnly ?? false), vikunja: String(vikunja.startIsDateOnly ?? false))
     addDiff(field: "alarms", reminders: alarmSignature(reminders.alarms), vikunja: alarmSignature(vikunja.alarms))
     addDiff(field: "recurrence", reminders: recurrenceSignature(reminders.recurrence), vikunja: recurrenceSignature(vikunja.recurrence))
+    addDiff(field: "priority", reminders: String(reminders.priority ?? 0), vikunja: String(vikunja.priority ?? 0))
+    addDiff(field: "notes", reminders: reminders.notes ?? "", vikunja: vikunja.notes ?? "")
+    addDiff(field: "flagged", reminders: String(reminders.isFlagged), vikunja: String(vikunja.isFlagged))
+    addDiff(field: "url", reminders: reminders.url ?? "", vikunja: vikunja.url ?? "")
     addDiff(field: "updatedAt", reminders: reminders.updatedAt ?? "nil", vikunja: vikunja.updatedAt ?? "nil")
 
     return diffs
@@ -396,7 +513,16 @@ public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool
     let sameDue = ignoreDue || normalizeDueForMatch(left.due) == normalizeDueForMatch(right.due)
     let sameAlarms = alarmComparableSet(task: left) == alarmComparableSet(task: right)
     let sameRecurrence = recurrenceSignature(left.recurrence) == recurrenceSignature(right.recurrence)
-    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence)
+    let samePriority = (left.priority ?? 0) == (right.priority ?? 0)
+    // Normalize nil and empty string as equivalent for notes and url
+    let leftNotes = left.notes?.isEmpty == true ? nil : left.notes
+    let rightNotes = right.notes?.isEmpty == true ? nil : right.notes
+    let sameNotes = leftNotes == rightNotes
+    let sameFlagged = left.isFlagged == right.isFlagged
+    let leftUrl = left.url?.isEmpty == true ? nil : left.url
+    let rightUrl = right.url?.isEmpty == true ? nil : right.url
+    let sameUrl = leftUrl == rightUrl
+    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged && sameUrl)
 }
 
 public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [String: SyncRecord], verbose: Bool = true) -> SyncPlan {
@@ -529,12 +655,18 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
 
     for key in onlyInReminders {
         if let task = remindersMap[key]?.first {
-            toCreateInVikunja.append(task)
+            // Skip creating completed tasks that were never synced
+            if !task.isCompleted {
+                toCreateInVikunja.append(task)
+            }
         }
     }
     for key in onlyInVikunja {
         if let task = vikunjaMap[key]?.first {
-            toCreateInReminders.append(task)
+            // Skip creating completed tasks that were never synced
+            if !task.isCompleted {
+                toCreateInReminders.append(task)
+            }
         }
     }
 

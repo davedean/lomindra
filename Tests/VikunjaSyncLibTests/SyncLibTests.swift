@@ -16,7 +16,12 @@ final class SyncLibTests: XCTestCase {
         alarms: [CommonAlarm] = [],
         recurrence: CommonRecurrence? = nil,
         dueIsDateOnly: Bool? = nil,
-        startIsDateOnly: Bool? = nil
+        startIsDateOnly: Bool? = nil,
+        priority: Int? = nil,
+        notes: String? = nil,
+        isFlagged: Bool = false,
+        completedAt: String? = nil,
+        url: String? = nil
     ) -> CommonTask {
         return CommonTask(
             source: source,
@@ -30,7 +35,12 @@ final class SyncLibTests: XCTestCase {
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: dueIsDateOnly,
-            startIsDateOnly: startIsDateOnly
+            startIsDateOnly: startIsDateOnly,
+            priority: priority,
+            notes: notes,
+            isFlagged: isFlagged,
+            completedAt: completedAt,
+            url: url
         )
     }
 
@@ -457,5 +467,209 @@ final class SyncLibTests: XCTestCase {
     func testShouldRetryVikunjaRequestFalseForAuthError() {
         let error = NSError(domain: "vikunja", code: 401, userInfo: nil)
         XCTAssertFalse(shouldRetryVikunjaRequest(error: error))
+    }
+
+    // MARK: - parseVikunjaRecurrence Tests
+
+    func testParseVikunjaRecurrenceReturnsNilWhenNoRepeatAfter() {
+        XCTAssertNil(parseVikunjaRecurrence(repeatAfter: nil, repeatMode: nil))
+        XCTAssertNil(parseVikunjaRecurrence(repeatAfter: nil, repeatMode: 0))
+    }
+
+    func testParseVikunjaRecurrenceDailyWithRepeatModeZero() {
+        let result = parseVikunjaRecurrence(repeatAfter: 86400, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceDailyWithRepeatModeNil() {
+        // BUG TEST: This should work but fails with current code
+        // Vikunja often returns repeat_mode as null for time-based recurrence
+        let result = parseVikunjaRecurrence(repeatAfter: 86400, repeatMode: nil)
+        XCTAssertNotNil(result, "Daily recurrence should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceWeeklyWithRepeatModeNil() {
+        // BUG TEST: This should work but fails with current code
+        let result = parseVikunjaRecurrence(repeatAfter: 604800, repeatMode: nil)
+        XCTAssertNotNil(result, "Weekly recurrence should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceWeeklyWithRepeatModeZero() {
+        let result = parseVikunjaRecurrence(repeatAfter: 604800, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceMonthly() {
+        let result = parseVikunjaRecurrence(repeatAfter: 0, repeatMode: 1)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "monthly")
+        XCTAssertEqual(result?.interval, 1)
+    }
+
+    func testParseVikunjaRecurrenceMultiDayInterval() {
+        // Every 3 days
+        let result = parseVikunjaRecurrence(repeatAfter: 259200, repeatMode: 0)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.frequency, "daily")
+        XCTAssertEqual(result?.interval, 3)
+    }
+
+    func testParseVikunjaRecurrenceBiweekly() {
+        // Every 2 weeks
+        let result = parseVikunjaRecurrence(repeatAfter: 1209600, repeatMode: nil)
+        XCTAssertNotNil(result, "Bi-weekly should work when repeat_mode is nil")
+        XCTAssertEqual(result?.frequency, "weekly")
+        XCTAssertEqual(result?.interval, 2)
+    }
+
+    // MARK: - Priority Mapping Tests
+
+    func testRemindersPriorityToVikunja() {
+        XCTAssertEqual(remindersPriorityToVikunja(1), 3)   // high
+        XCTAssertEqual(remindersPriorityToVikunja(5), 2)   // medium
+        XCTAssertEqual(remindersPriorityToVikunja(9), 1)   // low
+        XCTAssertEqual(remindersPriorityToVikunja(0), 0)   // none
+        XCTAssertEqual(remindersPriorityToVikunja(nil), 0) // nil
+    }
+
+    func testVikunjaPriorityToReminders() {
+        XCTAssertEqual(vikunjaPriorityToReminders(0), 0)   // none
+        XCTAssertEqual(vikunjaPriorityToReminders(1), 9)   // low
+        XCTAssertEqual(vikunjaPriorityToReminders(2), 5)   // medium
+        XCTAssertEqual(vikunjaPriorityToReminders(3), 1)   // high
+        XCTAssertEqual(vikunjaPriorityToReminders(5), 1)   // high (clamped)
+        XCTAssertEqual(vikunjaPriorityToReminders(nil), 0) // nil
+    }
+
+    // MARK: - New Field Diff Detection Tests
+
+    func testTasksDifferDetectsPriorityChange() {
+        let task1 = makeTask(priority: 1)
+        let task2 = makeTask(priority: 5)
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferDetectsNotesChange() {
+        let task1 = makeTask(notes: "Original notes")
+        let task2 = makeTask(notes: "Updated notes")
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferDetectsFlagChange() {
+        let task1 = makeTask(isFlagged: false)
+        let task2 = makeTask(isFlagged: true)
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferReturnsFalseWhenAllFieldsMatch() {
+        let task1 = makeTask(priority: 1, notes: "Test", isFlagged: true)
+        let task2 = makeTask(priority: 1, notes: "Test", isFlagged: true)
+        XCTAssertFalse(tasksDiffer(task1, task2))
+    }
+
+    // MARK: - URL Embedding Tests
+
+    func testEmbedUrlInDescriptionWithBoth() {
+        let result = embedUrlInDescription(description: "My notes", url: "https://example.com")
+        XCTAssertEqual(result, "---URL_START---\nhttps://example.com\n---URL_END---\nMy notes")
+    }
+
+    func testEmbedUrlInDescriptionWithUrlOnly() {
+        let result = embedUrlInDescription(description: nil, url: "https://example.com")
+        XCTAssertEqual(result, "---URL_START---\nhttps://example.com\n---URL_END---")
+    }
+
+    func testEmbedUrlInDescriptionWithDescriptionOnly() {
+        let result = embedUrlInDescription(description: "My notes", url: nil)
+        XCTAssertEqual(result, "My notes")
+    }
+
+    func testEmbedUrlInDescriptionWithNeither() {
+        let result = embedUrlInDescription(description: nil, url: nil)
+        XCTAssertNil(result)
+    }
+
+    func testEmbedUrlInDescriptionWithEmptyUrl() {
+        let result = embedUrlInDescription(description: "My notes", url: "")
+        XCTAssertEqual(result, "My notes")
+    }
+
+    func testExtractUrlFromDescription() {
+        let desc = "---URL_START---\nhttps://example.com\n---URL_END---\nMy notes"
+        let url = extractUrlFromDescription(desc)
+        XCTAssertEqual(url, "https://example.com")
+    }
+
+    func testExtractUrlFromDescriptionNoUrl() {
+        let url = extractUrlFromDescription("Just some notes")
+        XCTAssertNil(url)
+    }
+
+    func testExtractUrlFromDescriptionNil() {
+        let url = extractUrlFromDescription(nil)
+        XCTAssertNil(url)
+    }
+
+    func testStripUrlFromDescription() {
+        let desc = "---URL_START---\nhttps://example.com\n---URL_END---\nMy notes"
+        let stripped = stripUrlFromDescription(desc)
+        XCTAssertEqual(stripped, "My notes")
+    }
+
+    func testStripUrlFromDescriptionNoUrl() {
+        let stripped = stripUrlFromDescription("Just some notes")
+        XCTAssertEqual(stripped, "Just some notes")
+    }
+
+    func testStripUrlFromDescriptionUrlOnly() {
+        let desc = "---URL_START---\nhttps://example.com\n---URL_END---"
+        let stripped = stripUrlFromDescription(desc)
+        XCTAssertNil(stripped)
+    }
+
+    func testStripUrlFromDescriptionNil() {
+        let stripped = stripUrlFromDescription(nil)
+        XCTAssertNil(stripped)
+    }
+
+    func testUrlRoundTrip() {
+        let originalUrl = "https://example.com/path?query=value"
+        let originalNotes = "Some task notes here"
+
+        // Embed
+        let embedded = embedUrlInDescription(description: originalNotes, url: originalUrl)
+
+        // Extract
+        let extractedUrl = extractUrlFromDescription(embedded)
+        let extractedNotes = stripUrlFromDescription(embedded)
+
+        XCTAssertEqual(extractedUrl, originalUrl)
+        XCTAssertEqual(extractedNotes, originalNotes)
+    }
+
+    func testTasksDifferDetectsUrlChange() {
+        let task1 = makeTask(url: "https://example.com")
+        let task2 = makeTask(url: "https://other.com")
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferDetectsUrlAddition() {
+        let task1 = makeTask(url: nil)
+        let task2 = makeTask(url: "https://example.com")
+        XCTAssertTrue(tasksDiffer(task1, task2))
+    }
+
+    func testTasksDifferSameUrl() {
+        let task1 = makeTask(url: "https://example.com")
+        let task2 = makeTask(url: "https://example.com")
+        XCTAssertFalse(tasksDiffer(task1, task2))
     }
 }

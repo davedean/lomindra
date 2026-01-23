@@ -193,7 +193,7 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             source: "reminders",
             id: reminder.calendarItemIdentifier,
             listId: calendar.calendarIdentifier,
-            title: reminder.title ?? "(untitled)",
+            title: (reminder.title ?? "(untitled)").trimmingCharacters(in: .whitespacesAndNewlines),
             isCompleted: reminder.isCompleted,
             due: dateComponentsToISO(reminder.dueDateComponents),
             start: dateComponentsToISO(reminder.startDateComponents),
@@ -201,7 +201,12 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: dateComponentsIsDateOnly(reminder.dueDateComponents),
-            startIsDateOnly: dateComponentsIsDateOnly(reminder.startDateComponents)
+            startIsDateOnly: dateComponentsIsDateOnly(reminder.startDateComponents),
+            priority: reminder.priority,
+            notes: reminder.notes,
+            isFlagged: false,  // Note: EKReminder flagged status not exposed via EventKit API
+            completedAt: isoDate(reminder.completionDate),
+            url: reminder.url?.absoluteString
         )
     }
 }
@@ -223,12 +228,16 @@ struct VikunjaTask: Decodable {
     let id: Int
     let title: String
     let done: Bool?
+    let done_at: String?
     let due_date: String?
     let start_date: String?
     let updated: String?
     let reminders: [VikunjaReminder]?
     let repeat_after: Int?
     let repeat_mode: Int?
+    let priority: Int?
+    let description: String?
+    let is_favorite: Bool?
 }
 
 struct VikunjaReminder: Decodable {
@@ -415,23 +424,15 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             }
             return CommonAlarm(type: "relative", absolute: nil, relativeSeconds: reminder.relative_period, relativeTo: reminder.relative_to)
         }
-        var recurrence: CommonRecurrence?
-        if let repeatAfter = $0.repeat_after, let repeatMode = $0.repeat_mode {
-            if repeatMode == 1 {
-                recurrence = CommonRecurrence(frequency: "monthly", interval: 1)
-            } else if repeatMode == 0, repeatAfter > 0 {
-                if repeatAfter % 604800 == 0 {
-                    recurrence = CommonRecurrence(frequency: "weekly", interval: repeatAfter / 604800)
-                } else if repeatAfter % 86400 == 0 {
-                    recurrence = CommonRecurrence(frequency: "daily", interval: repeatAfter / 86400)
-                }
-            }
-        }
+        let recurrence = parseVikunjaRecurrence(repeatAfter: $0.repeat_after, repeatMode: $0.repeat_mode)
+        // Extract embedded URL from description
+        let extractedUrl = extractUrlFromDescription($0.description)
+        let cleanNotes = stripUrlFromDescription($0.description)
         return CommonTask(
             source: "vikunja",
             id: String($0.id),
             listId: String(projectId),
-            title: $0.title,
+            title: $0.title.trimmingCharacters(in: .whitespacesAndNewlines),
             isCompleted: $0.done ?? false,
             due: $0.due_date,
             start: $0.start_date,
@@ -439,7 +440,12 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             alarms: alarms,
             recurrence: recurrence,
             dueIsDateOnly: isDateOnlyString($0.due_date),
-            startIsDateOnly: isDateOnlyString($0.start_date)
+            startIsDateOnly: isDateOnlyString($0.start_date),
+            priority: vikunjaPriorityToReminders($0.priority),
+            notes: cleanNotes,
+            isFlagged: $0.is_favorite ?? false,
+            completedAt: $0.done_at,
+            url: extractedUrl
         )
     }
 }
@@ -1165,8 +1171,18 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             func createVikunjaTask(from task: CommonTask) throws -> Int {
                 var payload: [String: Any] = [
                     "title": task.title,
-                    "done": task.isCompleted
+                    "done": task.isCompleted,
+                    "priority": remindersPriorityToVikunja(task.priority),
+                    "is_favorite": task.isFlagged
                 ]
+                // Embed URL in description if present
+                let description = embedUrlInDescription(description: task.notes, url: task.url)
+                if let desc = description, !desc.isEmpty {
+                    payload["description"] = desc
+                }
+                if let completedAt = task.completedAt {
+                    payload["done_at"] = completedAt
+                }
                 if let due = vikunjaDateString(from: task.due) {
                     payload["due_date"] = due
                 }
@@ -1206,10 +1222,20 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             }
 
             func updateVikunjaTask(id: String, from task: CommonTask, inferredDue: Bool) throws {
+                // Embed URL in description if present
+                let description = embedUrlInDescription(description: task.notes, url: task.url) ?? ""
                 var payload: [String: Any] = [
                     "title": task.title,
-                    "done": task.isCompleted
+                    "done": task.isCompleted,
+                    "priority": remindersPriorityToVikunja(task.priority),
+                    "is_favorite": task.isFlagged,
+                    "description": description
                 ]
+                if task.isCompleted, let completedAt = task.completedAt {
+                    payload["done_at"] = completedAt
+                } else if !task.isCompleted {
+                    payload["done_at"] = NSNull()
+                }
                 if !inferredDue, let due = vikunjaDateString(from: task.due) {
                     payload["due_date"] = due
                 } else {
@@ -1268,26 +1294,29 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 reminder.calendar = calendar
                 reminder.title = task.title
                 reminder.isCompleted = task.isCompleted
+                reminder.priority = task.priority ?? 0
+                reminder.notes = task.notes
+                if let urlString = task.url, let url = URL(string: urlString) {
+                    reminder.url = url
+                }
+                // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
+                if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
+                    reminder.completionDate = date
+                }
                 if let due = dateComponentsFromISO(task.due, dateOnly: isDateOnlyString(task.due)) {
                     reminder.dueDateComponents = due
                 }
+                // Explicitly set/clear startDateComponents (EventKit may auto-set it when due is set)
                 if let start = dateComponentsFromISO(task.start, dateOnly: isDateOnlyString(task.start)) {
                     reminder.startDateComponents = start
+                } else {
+                    reminder.startDateComponents = nil
                 }
                 var inferredDue = false
                 if task.recurrence != nil && reminder.dueDateComponents == nil {
                     let today = Calendar.current.dateComponents([.year, .month, .day], from: Date())
                     reminder.dueDateComponents = today
                     inferredDue = true
-                }
-                if !task.alarms.isEmpty {
-                    for alarm in task.alarms {
-                        if alarm.type == "absolute", let abs = alarm.absolute, let date = parseISODate(abs) {
-                            reminder.addAlarm(EKAlarm(absoluteDate: date))
-                        } else if alarm.type == "relative", let offset = alarm.relativeSeconds {
-                            reminder.addAlarm(EKAlarm(relativeOffset: TimeInterval(offset)))
-                        }
-                    }
                 }
                 if let recurrence = task.recurrence {
                     let frequency: EKRecurrenceFrequency
@@ -1300,8 +1329,27 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     }
                     reminder.addRecurrenceRule(EKRecurrenceRule(recurrenceWith: frequency, interval: recurrence.interval, end: nil))
                 }
+
+                // Save FIRST without alarms (EventKit may discard alarms added before first save)
                 try store.save(reminder, commit: true)
-                return (reminder.calendarItemIdentifier, inferredDue)
+                let reminderId = reminder.calendarItemIdentifier
+
+                // Add alarms after initial save using save-fetch-modify-save pattern
+                if !task.alarms.isEmpty {
+                    guard let savedReminder = store.calendarItem(withIdentifier: reminderId) as? EKReminder else {
+                        throw NSError(domain: "reminders", code: 5, userInfo: [NSLocalizedDescriptionKey: "Could not re-fetch reminder after save"])
+                    }
+                    for alarm in task.alarms {
+                        if alarm.type == "absolute", let abs = alarm.absolute, let date = parseISODate(abs) {
+                            savedReminder.addAlarm(EKAlarm(absoluteDate: date))
+                        } else if alarm.type == "relative", let offset = alarm.relativeSeconds {
+                            savedReminder.addAlarm(EKAlarm(relativeOffset: TimeInterval(offset)))
+                        }
+                    }
+                    try store.save(savedReminder, commit: true)
+                }
+
+                return (reminderId, inferredDue)
             }
 
             func updateReminder(id: String, from task: CommonTask, dateOnlyDue: Bool, dateOnlyStart: Bool) throws -> Bool {
@@ -1310,8 +1358,30 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 }
                 item.title = task.title
                 item.isCompleted = task.isCompleted
-                item.dueDateComponents = dateComponentsFromISO(task.due, dateOnly: dateOnlyDue)
-                item.startDateComponents = dateComponentsFromISO(task.start, dateOnly: dateOnlyStart)
+                item.priority = task.priority ?? 0
+                item.notes = task.notes
+                if let urlString = task.url, let url = URL(string: urlString) {
+                    item.url = url
+                } else {
+                    item.url = nil
+                }
+                // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
+                if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
+                    item.completionDate = date
+                } else if !task.isCompleted {
+                    item.completionDate = nil
+                }
+                // Use explicit nil assignment to ensure dates are properly cleared
+                if let due = dateComponentsFromISO(task.due, dateOnly: dateOnlyDue) {
+                    item.dueDateComponents = due
+                } else {
+                    item.dueDateComponents = nil
+                }
+                if let start = dateComponentsFromISO(task.start, dateOnly: dateOnlyStart) {
+                    item.startDateComponents = start
+                } else {
+                    item.startDateComponents = nil
+                }
                 var inferredDue = false
                 if task.recurrence != nil && item.dueDateComponents == nil {
                     let today = Calendar.current.dateComponents([.year, .month, .day], from: Date())

@@ -40,6 +40,9 @@ struct SeedTask: Decodable {
     let start: String?
     let alarms: [SeedAlarm]?
     let recurrence: SeedRecurrence?
+    let priority: Int?
+    let notes: String?
+    let url: String?
 }
 
 struct VikunjaTask: Decodable {
@@ -353,8 +356,39 @@ func createReminder(store: EKEventStore, calendar: EKCalendar, task: SeedTask) t
         }
         reminder.addRecurrenceRule(EKRecurrenceRule(recurrenceWith: frequency, interval: recurrence.interval, end: nil))
     }
+    // Priority: Reminders uses 0 (none), 1 (high), 5 (medium), 9 (low)
+    if let priority = task.priority {
+        reminder.priority = priority
+    }
+    if let notes = task.notes {
+        reminder.notes = notes
+    }
+    if let urlString = task.url, let url = URL(string: urlString) {
+        reminder.url = url
+    }
     try store.save(reminder, commit: true)
     return reminder.calendarItemIdentifier
+}
+
+/// Convert Reminders priority (0/1/5/9) to Vikunja priority (0-3)
+func remindersPriorityToVikunja(_ priority: Int?) -> Int {
+    guard let p = priority else { return 0 }
+    switch p {
+    case 1: return 3  // high
+    case 5: return 2  // medium
+    case 9: return 1  // low
+    default: return 0 // none
+    }
+}
+
+/// Embed URL in description using markers (matches sync logic)
+func embedUrlInDescription(description: String?, url: String?) -> String? {
+    guard let url = url, !url.isEmpty else { return description }
+    let urlBlock = "[URL:\(url)]"
+    if let desc = description, !desc.isEmpty {
+        return urlBlock + "\n\n" + desc
+    }
+    return urlBlock
 }
 
 func createVikunjaTask(config: Config, projectId: Int, task: SeedTask) throws -> Int {
@@ -395,6 +429,15 @@ func createVikunjaTask(config: Config, projectId: Int, task: SeedTask) throws ->
         default:
             break
         }
+    }
+    // Priority: convert from Reminders format to Vikunja format
+    if let priority = task.priority {
+        payload["priority"] = remindersPriorityToVikunja(priority)
+    }
+    // Description: notes with optional embedded URL
+    let description = embedUrlInDescription(description: task.notes, url: task.url)
+    if let desc = description, !desc.isEmpty {
+        payload["description"] = desc
     }
     let data = try vikunjaRequest(config: config, method: "PUT", path: "/projects/\(projectId)/tasks", body: payload)
     let created = try JSONDecoder().decode(VikunjaTask.self, from: data)
