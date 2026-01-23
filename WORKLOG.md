@@ -73,3 +73,12 @@
   - Extract URL from description on fetch, embed on create/update
   - EKReminder.url property used for Reminders side
   - Added 16 unit tests for URL embedding/extraction and diff detection
+- **Integration test enhancements & nil vs empty string fix**
+  - Ran full integration test using `scripts/run_seed_tests.sh`
+  - Enhanced `seed_tasks.json` with priority, notes, and URL test cases (9 new tasks)
+  - Updated `seed_test_data.swift` to support priority, notes, url fields
+  - Discovered sync instability: 4 tasks needed spurious updates post-apply
+  - Root cause: `tasksDiffer()` compared `nil` to `""` (empty string) as different
+  - Fix: Normalize empty strings to nil before comparing notes and url fields
+  - Fix: `stripUrlFromDescription()` now returns nil for empty/whitespace strings
+  - Integration test now reaches steady state (0 updates post-apply)
