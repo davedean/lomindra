@@ -12,7 +12,6 @@ Fixed by extracting recurrence parsing into `parseVikunjaRecurrence()` function 
 **Changes:**
 - Added `parseVikunjaRecurrence(repeatAfter:repeatMode:)` to `Sources/VikunjaSyncLib/SyncLib.swift`
 - Updated `SyncRunner.swift` to use the new function
-- Updated `scripts/mvp_sync.swift` to use the new function
 - Added 8 unit tests covering all recurrence parsing scenarios
 
 ## Problem
@@ -36,7 +35,6 @@ When Vikunja returns a task with `repeat_after: 86400`, it may return `repeat_mo
 ### The Bug
 
 **File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 418-429)
-**Also:** `scripts/mvp_sync.swift` (lines 284-298)
 
 ```swift
 if let repeatAfter = $0.repeat_after, let repeatMode = $0.repeat_mode {
@@ -67,7 +65,6 @@ Only the initial Vikunja parsing is broken.
 ### Fix Vikunja parsing logic
 
 **File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 418-429)
-**Also:** `scripts/mvp_sync.swift` (lines 284-298)
 
 Allow `repeat_mode` to be nil and default to 0:
 

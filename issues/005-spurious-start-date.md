@@ -11,7 +11,6 @@ Fixed by using explicit guarded assignments with nil clearing in `updateReminder
 
 **Changes:**
 - Updated `updateReminder()` in `Sources/VikunjaSyncLib/SyncRunner.swift`
-- Updated `updateReminder()` in `scripts/mvp_sync.swift`
 
 ## Problem
 
@@ -44,8 +43,7 @@ When `task.start` is nil, `dateComponentsFromISO` returns nil, but assigning nil
 
 ### Fix updateReminder() date assignments
 
-**File:** `scripts/mvp_sync.swift` (lines 1101-1102)
-**Also:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 1313-1314)
+**File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 1313-1314)
 
 Replace unconditional assignments:
 

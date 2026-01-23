@@ -43,7 +43,7 @@
   - Vikunja often returns `repeat_mode: null` for time-based recurrence
   - Added `parseVikunjaRecurrence()` function to `SyncLib.swift` with nil-defaulting to 0
   - Added 8 unit tests covering all recurrence scenarios
-  - Updated `SyncRunner.swift` and `scripts/mvp_sync.swift` to use the new function
+  - Updated `SyncRunner.swift` to use the new function
 - **Fixed Issue 003: Alerts not syncing to Reminders**
   - Root cause: EventKit may discard alarms added before first save
   - Implemented save-fetch-modify-save pattern in `createReminder()`
@@ -51,3 +51,14 @@
 - **Fixed Issue 005: Spurious start_date added on sync**
   - Root cause: Unconditional assignment in `updateReminder()` didn't properly clear nil dates
   - Changed to explicit guarded assignments with nil clearing
+- **Implemented Issue 001 (partial): Missing fields in CommonTask**
+  - Added priority, notes, completedAt fields to CommonTask
+  - Priority mapping: Reminders (0/1/5/9) ↔ Vikunja (0-3)
+  - Notes: EKReminder.notes ↔ Task.description
+  - CompletedAt: EKReminder.completionDate ↔ Task.done_at
+  - isFlagged: Vikunja→Reminders works; Reminders→Vikunja hardcoded false (API research needed)
+  - Added unit tests for priority mapping and diff detection
+- **Removed legacy scripts**
+  - Deleted `scripts/sync_lib.swift`, `scripts/mvp_sync.swift`, `scripts/sync_tests.swift`
+  - Swift Package (`Sources/`) is now the only sync implementation
+  - Updated CLAUDE.md, AGENTS.md, and issue files to remove legacy references

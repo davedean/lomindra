@@ -8,7 +8,7 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 001 | [Add missing fields (priority, notes, flags)](001-add-missing-fields-to-commontask.md) | Medium-High | Medium | Open |
+| 001 | [Add missing fields (priority, notes, flags)](001-add-missing-fields-to-commontask.md) | Medium-High | Medium | **Partial** (3/4 fields) |
 
 ### Sync Behavior Bugs
 
@@ -35,7 +35,7 @@ Tracking issues identified during sync testing.
 - ~~Issue 003: Alerts - save-fetch-modify-save pattern~~ **DONE**
 
 **Medium effort:**
-- Issue 001: Add missing fields - adds priority, notes, flags, completedAt to CommonTask (~12 locations)
+- Issue 001: Add missing fields - priority, notes, completedAt complete; isFlagged needs EKReminder API research
 - Issue 008: URLs - add field, embed in description
 
 **Needs design decision:**
