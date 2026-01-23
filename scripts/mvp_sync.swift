@@ -280,18 +280,7 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             }
             return CommonAlarm(type: "relative", absolute: nil, relativeSeconds: reminder.relative_period, relativeTo: reminder.relative_to)
         }
-        var recurrence: CommonRecurrence?
-        if let repeatAfter = $0.repeat_after, let repeatMode = $0.repeat_mode {
-            if repeatMode == 1 {
-                recurrence = CommonRecurrence(frequency: "monthly", interval: 1)
-            } else if repeatMode == 0, repeatAfter > 0 {
-                if repeatAfter % 604800 == 0 {
-                    recurrence = CommonRecurrence(frequency: "weekly", interval: repeatAfter / 604800)
-                } else if repeatAfter % 86400 == 0 {
-                    recurrence = CommonRecurrence(frequency: "daily", interval: repeatAfter / 86400)
-                }
-            }
-        }
+        let recurrence = parseVikunjaRecurrence(repeatAfter: $0.repeat_after, repeatMode: $0.repeat_mode)
         return CommonTask(
             source: "vikunja",
             id: String($0.id),
