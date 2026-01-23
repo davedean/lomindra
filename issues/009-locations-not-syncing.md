@@ -1,22 +1,60 @@
 # Issue 009: Locations not syncing
 
 **Severity:** Low
-**Status:** Open
+**Status:** Resolved
 **Reported:** 2026-01-23
+**Resolved:** 2026-01-23
+
+## Resolution
+
+**Approach: Preserve location-based alarms during sync (don't overwrite them)**
+
+Instead of complex metadata storage and rehydration, we simply don't touch location-based alarms when syncing from Vikunja back to Reminders.
+
+**Implementation:** In `SyncRunner.swift`, when updating a reminder's alarms, we now skip alarms that have `structuredLocation` set:
+
+```swift
+// Remove only time-based alarms; preserve location-based alarms
+// (Vikunja doesn't support locations, so we keep them untouched)
+if let existingAlarms = item.alarms {
+    for alarm in existingAlarms {
+        if alarm.structuredLocation == nil {
+            item.removeAlarm(alarm)
+        }
+    }
+}
+```
+
+**Behavior:**
+- Location triggers remain on reminders after syncing
+- Time-based alarms sync normally between systems
+- Vikunja doesn't see location data (it can't store it anyway)
+- Round-trip: Reminder with location → sync to Vikunja → sync back → location still intact
 
 ## Problem
 
-Location-based reminders in Apple Reminders are not synced to Vikunja.
+Location-based reminders in Apple Reminders were having their location triggers removed during sync.
 
 **Reminders → Vikunja:**
-- Reminder with location trigger → Vikunja has no location data
+- Reminder with location trigger → Vikunja has no location data (expected - Vikunja doesn't support locations)
 
 **Vikunja → Reminders:**
-- Vikunja has no location concept to sync back
+- When syncing back, all alarms were replaced, removing location triggers (bug)
 
-## Root Cause Analysis
+## Root Cause
 
-### EventKit Location APIs
+The `updateReminder()` function was removing ALL alarms before adding back the synced time-based alarms:
+
+```swift
+// Old behavior - removed ALL alarms including location
+if let existingAlarms = item.alarms {
+    for alarm in existingAlarms {
+        item.removeAlarm(alarm)  // ← This killed location alarms!
+    }
+}
+```
+
+## EventKit Location APIs (Reference)
 
 Apple Reminders has sophisticated location-based triggering through `EKAlarm`:
 
@@ -31,15 +69,7 @@ Apple Reminders has sophisticated location-based triggering through `EKAlarm`:
   - `geoLocation` (CLLocationCoordinate2D) - latitude/longitude
   - `radius` (CLLocationDistance) - geofence radius in meters
 
-**Current Implementation:**
-Only handles time-based alarms:
-```swift
-if alarm.type == "absolute" { ... }
-else if alarm.type == "relative" { ... }
-// Location alarms completely ignored
-```
-
-### Vikunja Location Support
+## Vikunja Location Support
 
 **Vikunja has NO native location support.**
 
@@ -50,194 +80,20 @@ The API only supports time-based reminders:
 
 No location fields, geofence properties, or proximity concepts exist.
 
-## Recommended Approach: Metadata Preservation
+## Why This Approach
 
-**Why metadata preservation:**
-- Maintains full round-trip fidelity
-- No data loss for power users
-- Transparent about Vikunja's limitations
-- Location data restored when syncing back to Reminders
+The simpler "preserve existing location alarms" approach was chosen over metadata storage because:
 
-**User-Facing Behavior:**
-1. Location reminders sync to Vikunja as time-based (keep due date or alarm time)
-2. Location metadata stored in sync database
-3. When syncing back, location trigger restored from metadata
-4. User informed that location not visible/usable in Vikunja
+1. **Much simpler** - One guard condition vs. database schema changes + serialization
+2. **No data migration** - No need to add columns to sync database
+3. **Same result** - Location triggers preserved through round-trip
+4. **Less code to maintain** - No location extraction/restoration logic needed
 
-## Required Changes
-
-### 1. Add CommonLocation struct
-
-**File:** `Sources/VikunjaSyncLib/SyncLib.swift`
-
-```swift
-public struct CommonLocation: Codable, Equatable {
-    public let title: String?
-    public let latitude: Double?
-    public let longitude: Double?
-    public let radius: Double?  // meters
-    public let proximity: String?  // "enter", "leave", or "none"
-
-    public init(title: String?, latitude: Double?, longitude: Double?,
-                radius: Double?, proximity: String?) {
-        self.title = title
-        self.latitude = latitude
-        self.longitude = longitude
-        self.radius = radius
-        self.proximity = proximity
-    }
-}
-```
-
-### 2. Add location to CommonTask (optional)
-
-**File:** `Sources/VikunjaSyncLib/SyncLib.swift`
-
-```swift
-public struct CommonTask {
-    // ... existing fields ...
-    public let location: CommonLocation?
-}
-```
-
-### 3. Extend sync database schema
-
-**File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (SQLite schema)
-
-```sql
-ALTER TABLE task_sync_map ADD COLUMN location_data_json TEXT;
-```
-
-**Location JSON format:**
-```json
-{
-  "title": "Home",
-  "latitude": 37.7749,
-  "longitude": -122.4194,
-  "radius": 100,
-  "proximity": "enter"
-}
-```
-
-### 4. Add location extraction helper
-
-**File:** `Sources/VikunjaSyncLib/SyncRunner.swift`
-
-```swift
-import CoreLocation  // Required for CLLocationCoordinate2D
-
-func extractLocationFromReminder(_ reminder: EKReminder) -> CommonLocation? {
-    guard let alarms = reminder.alarms else { return nil }
-
-    for alarm in alarms {
-        if let location = alarm.structuredLocation {
-            return CommonLocation(
-                title: location.title,
-                latitude: location.geoLocation?.latitude,
-                longitude: location.geoLocation?.longitude,
-                radius: location.radius,
-                proximity: proximityToString(alarm.proximity)
-            )
-        }
-    }
-    return nil
-}
-
-private func proximityToString(_ proximity: EKAlarmProximity) -> String {
-    switch proximity {
-    case .none: return "none"
-    case .enter: return "enter"
-    case .leave: return "leave"
-    @unknown default: return "none"
-    }
-}
-
-private func stringToProximity(_ str: String?) -> EKAlarmProximity {
-    switch str {
-    case "enter": return .enter
-    case "leave": return .leave
-    default: return .none
-    }
-}
-```
-
-### 5. Add location restoration helper
-
-**File:** `Sources/VikunjaSyncLib/SyncRunner.swift`
-
-```swift
-func applyLocationToReminder(_ reminder: EKReminder, location: CommonLocation?) {
-    // Remove existing location alarms
-    if let alarms = reminder.alarms {
-        for alarm in alarms where alarm.structuredLocation != nil {
-            reminder.removeAlarm(alarm)
-        }
-    }
-
-    guard let location = location else { return }
-
-    let ekLocation = EKStructuredLocation(title: location.title ?? "Location")
-    if let lat = location.latitude, let lon = location.longitude {
-        ekLocation.geoLocation = CLLocation(latitude: lat, longitude: lon)
-    }
-    if let radius = location.radius {
-        ekLocation.radius = radius
-    }
-
-    let alarm = EKAlarm()
-    alarm.structuredLocation = ekLocation
-    alarm.proximity = stringToProximity(location.proximity)
-    reminder.addAlarm(alarm)
-}
-```
-
-### 6. Update fetchReminders()
-
-**File:** `Sources/VikunjaSyncLib/SyncRunner.swift` (lines 157-207)
-
-Extract and store location:
-```swift
-let location = extractLocationFromReminder(reminder)
-// Store location in sync record metadata
-```
-
-### 7. Update createReminder() / updateReminder()
-
-**File:** `Sources/VikunjaSyncLib/SyncRunner.swift`
-
-Restore location from metadata if present:
-```swift
-if let locationJson = syncRecord.locationDataJson,
-   let location = try? JSONDecoder().decode(CommonLocation.self, from: locationJson.data(using: .utf8)!) {
-    applyLocationToReminder(reminder, location: location)
-}
-```
-
-## Alternative Approaches (Not Recommended)
-
-### Option A: Text Representation
-- Serialize as: "📍 Home (50m, arrive)"
-- Store in task notes
-- **Con:** Cannot recreate geofence on round-trip
-
-### Option C: Skip Entirely
-- Document as unsupported
-- **Con:** Silent data loss
-
-## Framework Import Note
-
-Location code requires:
-```swift
-import EventKit
-import CoreLocation  // For CLLocationCoordinate2D, CLLocation
-```
+The tradeoff is that locations created in Reminders stay in Reminders only - we can't create location reminders from Vikunja. But since Vikunja has no location concept, this isn't a loss.
 
 ## Acceptance Criteria
 
-- [ ] Location reminders extracted from EventKit without errors
-- [ ] Location metadata stored in sync database
-- [ ] Location reminders round-trip correctly (Reminders → sync DB → Reminders)
-- [ ] Location triggers don't cause sync errors
-- [ ] Vikunja syncs (without location) work normally
-- [ ] Documentation updated with location limitations
-- [ ] Unit tests for location serialization/deserialization
+- [x] Location reminders preserve their location trigger after sync
+- [x] Time-based alarms sync normally
+- [x] No errors when syncing reminders with location triggers
+- [x] Tests pass

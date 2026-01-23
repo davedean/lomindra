@@ -24,8 +24,17 @@ Tracking issues identified during sync testing.
 |---|-------|----------|------------|--------|
 | 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Medium-High | Open |
 | 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | Low-Medium | **Resolved** |
-| 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | High | Open |
-| 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | High | Open (Research) |
+| 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | Low | **Resolved** |
+| 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
+
+### App Polish / UX
+
+| # | Issue | Severity | Complexity | Status |
+|---|-------|----------|------------|--------|
+| 011 | [Vikunja Cloud easy onboarding](011-vikunja-cloud-onboarding.md) | Low | Low-Medium | Open (Pending feedback) |
+| 012 | [Background sync improvements](012-background-sync-improvements.md) | High | Medium | Open |
+| 013 | [Dev mode vs release mode](013-dev-mode-release-mode.md) | Medium | Low | Open |
+| 014 | [UI polish and settings](014-ui-polish-settings.md) | Medium | Medium | Open |
 
 ## Summary
 
@@ -40,8 +49,10 @@ Tracking issues identified during sync testing.
 
 **Needs design decision:**
 - Issue 006: Tags/Labels - different models between systems (hashtag encoding recommended)
-- Issue 009: Locations - fundamental feature gap (metadata preservation recommended)
-- Issue 010: Attachments - requires research into EventKit attachment APIs
+
+**Recently resolved:**
+- ~~Issue 009: Locations~~ **DONE** - preserve location alarms during sync (don't overwrite)
+- ~~Issue 010: Attachments~~ **Cannot Fix** - EventKit has no attachment API for reminders
 
 ## Dependencies
 
