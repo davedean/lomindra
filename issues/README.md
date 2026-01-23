@@ -32,9 +32,10 @@ Tracking issues identified during sync testing.
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
 | 011 | [Vikunja Cloud easy onboarding](011-vikunja-cloud-onboarding.md) | Low | Low-Medium | Open (Pending feedback) |
-| 012 | [Background sync improvements](012-background-sync-improvements.md) | High | Medium | Open |
+| 012 | [Background sync improvements](012-background-sync-improvements.md) | High | Medium | **Partial** (frequency done) |
 | 013 | [Dev mode vs release mode](013-dev-mode-release-mode.md) | Medium | Low | Open |
 | 014 | [UI polish and settings](014-ui-polish-settings.md) | Medium | Medium | Open |
+| 015 | [Intelligent sync scheduling](015-intelligent-sync-scheduling.md) | Low | Medium | Open |
 
 ## Summary
 
