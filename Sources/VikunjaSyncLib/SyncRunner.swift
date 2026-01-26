@@ -1142,7 +1142,7 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
         let vikunjaTasks = mapping.vikunjaProjectId == nil
             ? []
             : try fetchVikunjaTasks(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, projectId: mapping.vikunjaProjectId!)
-        let plan = diffTasks(reminders: remindersTasks, vikunja: vikunjaTasks, records: records)
+        let plan = diffTasks(reminders: remindersTasks, vikunja: vikunjaTasks, records: records, compareLabels: config.syncTagsEnabled)
         try syncConflicts(db: db, listId: mapping.remindersListId, projectId: mapping.vikunjaProjectId, conflicts: plan.conflicts)
         progress?(SyncProgress(message: "Computed plan", listTitle: mapping.remindersListTitle))
 

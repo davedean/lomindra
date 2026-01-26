@@ -457,7 +457,7 @@ public func conflictFieldDiffs(reminders: CommonTask, vikunja: CommonTask) -> [C
 
 // MARK: - Diff Logic
 
-public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool = false) -> Bool {
+public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool = false, compareLabels: Bool = false) -> Bool {
     let sameTitle = left.title.caseInsensitiveCompare(right.title) == .orderedSame
     let sameDone = left.isCompleted == right.isCompleted
     let sameDue = ignoreDue || normalizeDueForMatch(left.due) == normalizeDueForMatch(right.due)
@@ -469,10 +469,12 @@ public func tasksDiffer(_ left: CommonTask, _ right: CommonTask, ignoreDue: Bool
     let rightNotes = right.notes?.isEmpty == true ? nil : right.notes
     let sameNotes = leftNotes == rightNotes
     let sameFlagged = left.isFlagged == right.isFlagged
-    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged)
+    // Compare labels (case-insensitive) when enabled
+    let sameLabels = !compareLabels || Set(left.labels.map { $0.lowercased() }) == Set(right.labels.map { $0.lowercased() })
+    return !(sameTitle && sameDone && sameDue && sameAlarms && sameRecurrence && samePriority && sameNotes && sameFlagged && sameLabels)
 }
 
-public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [String: SyncRecord], verbose: Bool = true) -> SyncPlan {
+public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [String: SyncRecord], verbose: Bool = true, compareLabels: Bool = false) -> SyncPlan {
     let remindersById = Dictionary(uniqueKeysWithValues: reminders.map { ($0.id, $0) })
     let vikunjaById = Dictionary(uniqueKeysWithValues: vikunja.map { ($0.id, $0) })
 
@@ -552,11 +554,11 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
         if lastRem == nil || lastVik == nil {
             if let remDate = remUpdated, let vikDate = vikUpdated {
                 if remDate > vikDate {
-                    if tasksDiffer(rem, vik, ignoreDue: ignoreDue) {
+                    if tasksDiffer(rem, vik, ignoreDue: ignoreDue, compareLabels: compareLabels) {
                         toUpdateVikunja.append(pair)
                     }
                 } else if vikDate > remDate {
-                    if tasksDiffer(rem, vik, ignoreDue: ignoreDue) {
+                    if tasksDiffer(rem, vik, ignoreDue: ignoreDue, compareLabels: compareLabels) {
                         toUpdateReminders.append(pair)
                     }
                 }
@@ -570,11 +572,19 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
         if remChanged && vikChanged {
             conflicts.append(pair)
         } else if remChanged {
-            if tasksDiffer(rem, vik, ignoreDue: ignoreDue) {
+            if tasksDiffer(rem, vik, ignoreDue: ignoreDue, compareLabels: compareLabels) {
                 toUpdateVikunja.append(pair)
             }
         } else if vikChanged {
-            if tasksDiffer(rem, vik, ignoreDue: ignoreDue) {
+            if tasksDiffer(rem, vik, ignoreDue: ignoreDue, compareLabels: compareLabels) {
+                toUpdateReminders.append(pair)
+            }
+        } else if compareLabels {
+            // Neither side changed by timestamp, but check for label differences
+            // This handles cases where labels were added/removed without updating task timestamp
+            let labelsDiffer = Set(rem.labels.map { $0.lowercased() }) != Set(vik.labels.map { $0.lowercased() })
+            if labelsDiffer {
+                // Vikunja is source of truth for labels - sync to Reminders
                 toUpdateReminders.append(pair)
             }
         }
@@ -587,11 +597,11 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
         let vikUpdated = parseISODate(vik.updatedAt)
         if let remDate = remUpdated, let vikDate = vikUpdated {
             if remDate > vikDate {
-                if tasksDiffer(rem, vik) {
+                if tasksDiffer(rem, vik, compareLabels: compareLabels) {
                     toUpdateVikunja.append(pair)
                 }
             } else if vikDate > remDate {
-                if tasksDiffer(rem, vik) {
+                if tasksDiffer(rem, vik, compareLabels: compareLabels) {
                     toUpdateReminders.append(pair)
                 }
             }
