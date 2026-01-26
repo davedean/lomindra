@@ -189,11 +189,14 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             }
             recurrence = CommonRecurrence(frequency: freq, interval: rule.interval)
         }
+        // Extract hashtags from title and notes as labels (EventKit doesn't expose native tags)
+        let title = (reminder.title ?? "(untitled)").trimmingCharacters(in: .whitespacesAndNewlines)
+        let extractedLabels = extractTagsFromTask(title: title, notes: reminder.notes)
         return CommonTask(
             source: "reminders",
             id: reminder.calendarItemIdentifier,
             listId: calendar.calendarIdentifier,
-            title: (reminder.title ?? "(untitled)").trimmingCharacters(in: .whitespacesAndNewlines),
+            title: title,
             isCompleted: reminder.isCompleted,
             due: dateComponentsToISO(reminder.dueDateComponents),
             start: dateComponentsToISO(reminder.startDateComponents),
@@ -205,7 +208,8 @@ func fetchReminders(calendar: EKCalendar, store: EKEventStore) throws -> [Common
             priority: reminder.priority,
             notes: reminder.notes,
             isFlagged: false,  // Note: EKReminder flagged status not exposed via EventKit API
-            completedAt: isoDate(reminder.completionDate)
+            completedAt: isoDate(reminder.completionDate),
+            labels: extractedLabels
         )
     }
 }
@@ -223,6 +227,13 @@ final class InsecureSessionDelegate: NSObject, URLSessionDelegate {
     }
 }
 
+struct VikunjaLabel: Decodable {
+    let id: Int
+    let title: String
+    let description: String?
+    let hex_color: String?
+}
+
 struct VikunjaTask: Decodable {
     let id: Int
     let title: String
@@ -237,6 +248,7 @@ struct VikunjaTask: Decodable {
     let priority: Int?
     let description: String?
     let is_favorite: Bool?
+    let labels: [VikunjaLabel]?
 }
 
 struct VikunjaReminder: Decodable {
@@ -424,6 +436,7 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             return CommonAlarm(type: "relative", absolute: nil, relativeSeconds: reminder.relative_period, relativeTo: reminder.relative_to)
         }
         let recurrence = parseVikunjaRecurrence(repeatAfter: $0.repeat_after, repeatMode: $0.repeat_mode)
+        let labelTitles = ($0.labels ?? []).map { $0.title }
         return CommonTask(
             source: "vikunja",
             id: String($0.id),
@@ -440,7 +453,8 @@ func fetchVikunjaTasks(apiBase: String, token: String, projectId: Int) throws ->
             priority: vikunjaPriorityToReminders($0.priority),
             notes: $0.description,
             isFlagged: $0.is_favorite ?? false,
-            completedAt: $0.done_at
+            completedAt: $0.done_at,
+            labels: labelTitles
         )
     }
 }
@@ -454,6 +468,40 @@ func createVikunjaProject(apiBase: String, token: String, title: String) throws 
     let payload: [String: Any] = ["title": title]
     let data = try vikunjaRequest(apiBase: apiBase, token: token, method: "PUT", path: "/projects", body: payload)
     return try JSONDecoder().decode(VikunjaProject.self, from: data)
+}
+
+// MARK: - Vikunja Label API
+
+/// Fetch all labels accessible to the current user
+func fetchVikunjaLabels(apiBase: String, token: String) throws -> [VikunjaLabel] {
+    let data = try vikunjaRequest(apiBase: apiBase, token: token, method: "GET", path: "/labels", body: nil)
+    return try JSONDecoder().decode([VikunjaLabel].self, from: data)
+}
+
+/// Create a new label in Vikunja
+func createVikunjaLabel(apiBase: String, token: String, title: String) throws -> VikunjaLabel {
+    let payload: [String: Any] = ["title": title]
+    let data = try vikunjaRequest(apiBase: apiBase, token: token, method: "PUT", path: "/labels", body: payload)
+    return try JSONDecoder().decode(VikunjaLabel.self, from: data)
+}
+
+/// Bulk update labels on a task (replaces all existing labels)
+func updateVikunjaTaskLabels(apiBase: String, token: String, taskId: Int, labelIds: [Int]) throws {
+    let labelObjects = labelIds.map { ["id": $0] }
+    let payload: [String: Any] = ["labels": labelObjects]
+    _ = try vikunjaRequest(apiBase: apiBase, token: token, method: "POST", path: "/tasks/\(taskId)/labels/bulk", body: payload)
+}
+
+/// Ensure all labels exist in Vikunja, creating any that are missing.
+/// Returns a dictionary mapping label titles (lowercased) to their Vikunja IDs.
+func ensureVikunjaLabelsExist(apiBase: String, token: String, labelTitles: [String], existingLabels: inout [String: Int]) throws {
+    for title in labelTitles {
+        let key = title.lowercased()
+        if existingLabels[key] == nil {
+            let created = try createVikunjaLabel(apiBase: apiBase, token: token, title: title)
+            existingLabels[key] = created.id
+        }
+    }
 }
 
 // MARK: - SQLite Operations
@@ -1061,6 +1109,15 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
         try migrateNullListFields(db: db, listId: mappings[0].remindersListId, projectId: projectId)
     }
 
+    // Label cache for hashtag sync feature: maps lowercased label title to Vikunja label ID
+    var labelCache: [String: Int] = [:]
+    if config.syncTagsEnabled {
+        let existingLabels = try fetchVikunjaLabels(apiBase: config.vikunjaApiBase, token: config.vikunjaToken)
+        for label in existingLabels {
+            labelCache[label.title.lowercased()] = label.id
+        }
+    }
+
     progress?(SyncProgress(message: "Starting sync", listTitle: nil))
 
     for mapping in mappings {
@@ -1164,13 +1221,25 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             }
 
             func createVikunjaTask(from task: CommonTask) throws -> Int {
+                // Strip hashtags from title/notes if syncTagsEnabled (labels stored separately in Vikunja)
+                let taskTitle: String
+                let taskNotes: String?
+                if config.syncTagsEnabled {
+                    let stripped = stripTagsFromTask(title: task.title, notes: task.notes)
+                    taskTitle = stripped.title
+                    taskNotes = stripped.notes
+                } else {
+                    taskTitle = task.title
+                    taskNotes = task.notes
+                }
+
                 var payload: [String: Any] = [
-                    "title": task.title,
+                    "title": taskTitle,
                     "done": task.isCompleted,
                     "priority": remindersPriorityToVikunja(task.priority),
                     "is_favorite": task.isFlagged
                 ]
-                if let notes = task.notes, !notes.isEmpty {
+                if let notes = taskNotes, !notes.isEmpty {
                     payload["description"] = notes
                 }
                 if let completedAt = task.completedAt {
@@ -1211,16 +1280,38 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 }
                 let data = try vikunjaRequest(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, method: "PUT", path: "/projects/\(projectId)/tasks", body: payload)
                 let created = try JSONDecoder().decode(VikunjaTask.self, from: data)
+
+                // Update labels if syncTagsEnabled and task has labels
+                if config.syncTagsEnabled && !task.labels.isEmpty {
+                    try ensureVikunjaLabelsExist(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, labelTitles: task.labels, existingLabels: &labelCache)
+                    let labelIds = task.labels.compactMap { labelCache[$0.lowercased()] }
+                    if !labelIds.isEmpty {
+                        try updateVikunjaTaskLabels(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, taskId: created.id, labelIds: labelIds)
+                    }
+                }
+
                 return created.id
             }
 
             func updateVikunjaTask(id: String, from task: CommonTask, inferredDue: Bool) throws {
+                // Strip hashtags from title/notes if syncTagsEnabled (labels stored separately in Vikunja)
+                let taskTitle: String
+                let taskNotes: String
+                if config.syncTagsEnabled {
+                    let stripped = stripTagsFromTask(title: task.title, notes: task.notes)
+                    taskTitle = stripped.title
+                    taskNotes = stripped.notes ?? ""
+                } else {
+                    taskTitle = task.title
+                    taskNotes = task.notes ?? ""
+                }
+
                 var payload: [String: Any] = [
-                    "title": task.title,
+                    "title": taskTitle,
                     "done": task.isCompleted,
                     "priority": remindersPriorityToVikunja(task.priority),
                     "is_favorite": task.isFlagged,
-                    "description": task.notes ?? ""
+                    "description": taskNotes
                 ]
                 if task.isCompleted, let completedAt = task.completedAt {
                     payload["done_at"] = completedAt
@@ -1265,6 +1356,18 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                     }
                 }
                 _ = try vikunjaRequest(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, method: "POST", path: "/tasks/\(id)", body: payload)
+
+                // Update labels if syncTagsEnabled
+                if config.syncTagsEnabled {
+                    if !task.labels.isEmpty {
+                        try ensureVikunjaLabelsExist(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, labelTitles: task.labels, existingLabels: &labelCache)
+                        let labelIds = task.labels.compactMap { labelCache[$0.lowercased()] }
+                        try updateVikunjaTaskLabels(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, taskId: Int(id) ?? 0, labelIds: labelIds)
+                    } else {
+                        // Clear labels if task has no labels
+                        try updateVikunjaTaskLabels(apiBase: config.vikunjaApiBase, token: config.vikunjaToken, taskId: Int(id) ?? 0, labelIds: [])
+                    }
+                }
             }
 
             func deleteVikunjaTask(id: String) throws {
@@ -1283,10 +1386,19 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
             func createReminder(from task: CommonTask) throws -> (String, Bool) {
                 let reminder = EKReminder(eventStore: store)
                 reminder.calendar = calendar
-                reminder.title = task.title
+
+                // Embed labels as hashtags in title/notes if syncTagsEnabled
+                if config.syncTagsEnabled && !task.labels.isEmpty {
+                    let placement = embedTagsWithPlacement(title: task.title, notes: task.notes, tags: task.labels)
+                    reminder.title = placement.title
+                    reminder.notes = placement.notes
+                } else {
+                    reminder.title = task.title
+                    reminder.notes = task.notes
+                }
+
                 reminder.isCompleted = task.isCompleted
                 reminder.priority = task.priority ?? 0
-                reminder.notes = task.notes
                 // Note: EKReminder.url is broken - writes don't show in UI, UI writes can't be read
                 // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
@@ -1345,10 +1457,19 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 guard let item = store.calendarItem(withIdentifier: id) as? EKReminder else {
                     throw NSError(domain: "reminders", code: 4, userInfo: [NSLocalizedDescriptionKey: "Reminder not found: \(id)"])
                 }
-                item.title = task.title
+
+                // Embed labels as hashtags in title/notes if syncTagsEnabled
+                if config.syncTagsEnabled && !task.labels.isEmpty {
+                    let placement = embedTagsWithPlacement(title: task.title, notes: task.notes, tags: task.labels)
+                    item.title = placement.title
+                    item.notes = placement.notes
+                } else {
+                    item.title = task.title
+                    item.notes = task.notes
+                }
+
                 item.isCompleted = task.isCompleted
                 item.priority = task.priority ?? 0
-                item.notes = task.notes
                 // Note: EKReminder.url is broken - writes don't show in UI, UI writes can't be read
                 // Note: EKReminder flagged status not exposed via EventKit API - cannot sync isFlagged
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {

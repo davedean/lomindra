@@ -22,7 +22,7 @@ Tracking issues identified during sync testing.
 
 | # | Issue | Severity | Complexity | Status |
 |---|-------|----------|------------|--------|
-| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Low | **Open** (opt-in feature) |
+| 006 | [Tags/Labels not syncing](006-tags-labels-not-syncing.md) | Medium | Low | **Implemented** (opt-in) |
 | 008 | [URLs not syncing](008-urls-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
 | 009 | [Locations not syncing](009-locations-not-syncing.md) | Low | Low | **Resolved** |
 | 010 | [Attachments not syncing](010-attachments-not-syncing.md) | Medium | N/A | **Cannot Fix** (API limit) |
@@ -51,7 +51,7 @@ Tracking issues identified during sync testing.
 - ~~Issue 009: Locations~~ **DONE** - preserve location alarms during sync (don't overwrite)
 
 **Opt-in features (workarounds for API limitations):**
-- Issue 006: Tags/Labels - Vikunja labels ↔ hashtags in notes/title (opt-in)
+- ~~Issue 006: Tags/Labels~~ **DONE** - Vikunja labels ↔ hashtags in notes/title (opt-in toggle)
 
 **Cannot fix (EventKit API limitations):**
 - ~~Issue 008: URLs~~ - `EKReminder.url` is broken (writes invisible in UI, UI writes unreadable)

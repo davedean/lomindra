@@ -81,6 +81,15 @@ struct SyncView: View {
                     }
                 }
                 .disabled(!isSignedIn)
+            }
+            Section(header: Text("Tags/Labels")) {
+                Toggle("Sync tags using hashtags", isOn: syncTagsBinding)
+                    .disabled(!isSignedIn)
+                Text("When enabled, Vikunja labels sync as #hashtags in reminder text. Native Reminders tags cannot be synced (Apple API limitation).")
+                    .foregroundColor(.secondary)
+                    .font(.footnote)
+            }
+            Section(header: Text("Debug")) {
 #if DEBUG
                 Group {
                     Button("Schedule Background Refresh") {
@@ -298,7 +307,8 @@ struct SyncView: View {
                     selectedRemindersIds: appState.settings.selectedRemindersIds,
                     projectOverrides: appState.settings.projectOverrides,
                     backgroundSyncEnabled: enabled,
-                    syncFrequencyMinutes: appState.settings.syncFrequencyMinutes
+                    syncFrequencyMinutes: appState.settings.syncFrequencyMinutes,
+                    syncTagsEnabled: appState.settings.syncTagsEnabled
                 )
                 appState.updateSettings(updated)
                 if enabled {
@@ -329,7 +339,8 @@ struct SyncView: View {
                     selectedRemindersIds: appState.settings.selectedRemindersIds,
                     projectOverrides: appState.settings.projectOverrides,
                     backgroundSyncEnabled: appState.settings.backgroundSyncEnabled,
-                    syncFrequencyMinutes: minutes
+                    syncFrequencyMinutes: minutes,
+                    syncTagsEnabled: appState.settings.syncTagsEnabled
                 )
                 appState.updateSettings(updated)
                 // Reschedule with new interval if background sync is enabled
@@ -340,6 +351,26 @@ struct SyncView: View {
                         refreshPendingCount()
                     }
                 }
+            }
+        )
+    }
+
+    private var syncTagsBinding: Binding<Bool> {
+        Binding(
+            get: { appState.settings.syncTagsEnabled },
+            set: { enabled in
+                let updated = AppSettings(
+                    apiBase: appState.settings.apiBase,
+                    syncAllLists: appState.settings.syncAllLists,
+                    remindersListId: appState.settings.remindersListId,
+                    vikunjaProjectId: appState.settings.vikunjaProjectId,
+                    selectedRemindersIds: appState.settings.selectedRemindersIds,
+                    projectOverrides: appState.settings.projectOverrides,
+                    backgroundSyncEnabled: appState.settings.backgroundSyncEnabled,
+                    syncFrequencyMinutes: appState.settings.syncFrequencyMinutes,
+                    syncTagsEnabled: enabled
+                )
+                appState.updateSettings(updated)
             }
         )
     }

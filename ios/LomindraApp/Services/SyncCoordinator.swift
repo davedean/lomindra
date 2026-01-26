@@ -66,7 +66,8 @@ final class SyncCoordinator {
             vikunjaProjectId: nil,
             syncDbPath: dbPath,
             listMapPath: listMapPath,
-            syncAllLists: settings.syncAllLists
+            syncAllLists: settings.syncAllLists,
+            syncTagsEnabled: settings.syncTagsEnabled
         )
     }
 

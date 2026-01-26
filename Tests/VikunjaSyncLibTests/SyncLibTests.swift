@@ -572,4 +572,197 @@ final class SyncLibTests: XCTestCase {
         let task2 = makeTask(priority: 1, notes: "Test", isFlagged: true)
         XCTAssertFalse(tasksDiffer(task1, task2))
     }
+
+    // MARK: - Hashtag Extraction Tests
+
+    func testExtractTagsFromTextBasic() {
+        let text = "Buy groceries #shopping #errands"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, ["shopping", "errands"])
+    }
+
+    func testExtractTagsFromTextWithHyphensAndUnderscores() {
+        let text = "Work task #work-project #next_action"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, ["work-project", "next_action"])
+    }
+
+    func testExtractTagsFromTextIgnoresDuplicates() {
+        let text = "#urgent Do this #urgent thing #URGENT"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, ["urgent"]) // Case-insensitive dedup, keeps first
+    }
+
+    func testExtractTagsFromTextReturnsEmptyForNil() {
+        let tags = extractTagsFromText(nil)
+        XCTAssertEqual(tags, [])
+    }
+
+    func testExtractTagsFromTextReturnsEmptyForNoTags() {
+        let text = "Just a plain task"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, [])
+    }
+
+    func testExtractTagsFromTextHandlesTagsAtStartMiddleEnd() {
+        let text = "#start middle #middle end #end"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, ["start", "middle", "end"])
+    }
+
+    func testExtractTagsFromTextIgnoresInvalidPatterns() {
+        let text = "Price is $50 and email is test@example.com #valid"
+        let tags = extractTagsFromText(text)
+        XCTAssertEqual(tags, ["valid"])
+    }
+
+    // MARK: - Strip Tags Tests
+
+    func testStripTagsFromTextBasic() {
+        let text = "Buy groceries #shopping #errands"
+        let stripped = stripTagsFromText(text)
+        XCTAssertEqual(stripped, "Buy groceries")
+    }
+
+    func testStripTagsFromTextNormalizesWhitespace() {
+        let text = "Task   #tag1   #tag2   description"
+        let stripped = stripTagsFromText(text)
+        XCTAssertEqual(stripped, "Task description")
+    }
+
+    func testStripTagsFromTextReturnsEmptyForNil() {
+        let stripped = stripTagsFromText(nil)
+        XCTAssertEqual(stripped, "")
+    }
+
+    func testStripTagsFromTextHandlesOnlyTags() {
+        let text = "#tag1 #tag2 #tag3"
+        let stripped = stripTagsFromText(text)
+        XCTAssertEqual(stripped, "")
+    }
+
+    // MARK: - Embed Tags Tests
+
+    func testEmbedTagsInTextAppendsToExisting() {
+        let text = "My task"
+        let result = embedTagsInText(text, tags: ["urgent", "work"])
+        XCTAssertEqual(result, "My task\n\n#urgent #work")
+    }
+
+    func testEmbedTagsInTextHandlesNilText() {
+        let result = embedTagsInText(nil, tags: ["urgent"])
+        XCTAssertEqual(result, "#urgent")
+    }
+
+    func testEmbedTagsInTextHandlesEmptyTags() {
+        let result = embedTagsInText("My task", tags: [])
+        XCTAssertEqual(result, "My task")
+    }
+
+    func testEmbedTagsInTextFiltersEmptyTagStrings() {
+        let result = embedTagsInText("Task", tags: ["valid", "", "also-valid"])
+        XCTAssertEqual(result, "Task\n\n#valid #also-valid")
+    }
+
+    // MARK: - Tag Placement Tests
+
+    func testEmbedTagsWithPlacementPutsInTitleWhenNoNotes() {
+        let result = embedTagsWithPlacement(title: "My task", notes: nil, tags: ["urgent"])
+        XCTAssertEqual(result.title, "My task #urgent")
+        XCTAssertNil(result.notes)
+    }
+
+    func testEmbedTagsWithPlacementPutsInNotesWhenNotesExist() {
+        let result = embedTagsWithPlacement(title: "My task", notes: "Some notes", tags: ["urgent"])
+        XCTAssertEqual(result.title, "My task")
+        XCTAssertEqual(result.notes, "Some notes\n\n#urgent")
+    }
+
+    func testEmbedTagsWithPlacementTreatsEmptyNotesAsNil() {
+        let result = embedTagsWithPlacement(title: "My task", notes: "   ", tags: ["urgent"])
+        XCTAssertEqual(result.title, "My task #urgent")
+        XCTAssertNil(result.notes)
+    }
+
+    func testEmbedTagsWithPlacementNoChangeWhenNoTags() {
+        let result = embedTagsWithPlacement(title: "My task", notes: "Notes", tags: [])
+        XCTAssertEqual(result.title, "My task")
+        XCTAssertEqual(result.notes, "Notes")
+    }
+
+    // MARK: - Extract from Task Tests
+
+    func testExtractTagsFromTaskCombinesTitleAndNotes() {
+        let tags = extractTagsFromTask(title: "Task #work", notes: "Details #urgent")
+        XCTAssertEqual(tags, ["work", "urgent"])
+    }
+
+    func testExtractTagsFromTaskDeduplicatesAcrossFields() {
+        let tags = extractTagsFromTask(title: "Task #urgent", notes: "Also #urgent")
+        XCTAssertEqual(tags, ["urgent"])
+    }
+
+    func testExtractTagsFromTaskHandlesNilNotes() {
+        let tags = extractTagsFromTask(title: "Task #work #home", notes: nil)
+        XCTAssertEqual(tags, ["work", "home"])
+    }
+
+    // MARK: - Strip from Task Tests
+
+    func testStripTagsFromTaskStripsFromBoth() {
+        let result = stripTagsFromTask(title: "Task #work", notes: "Notes #urgent")
+        XCTAssertEqual(result.title, "Task")
+        XCTAssertEqual(result.notes, "Notes")
+    }
+
+    func testStripTagsFromTaskPreservesTitleIfOnlyTags() {
+        let result = stripTagsFromTask(title: "#work", notes: nil)
+        XCTAssertEqual(result.title, "#work") // Keeps original if stripped would be empty
+        XCTAssertNil(result.notes)
+    }
+
+    func testStripTagsFromTaskHandlesNilNotes() {
+        let result = stripTagsFromTask(title: "Task #tag", notes: nil)
+        XCTAssertEqual(result.title, "Task")
+        XCTAssertNil(result.notes)
+    }
+
+    // MARK: - Round-trip Tests
+
+    func testHashtagRoundTripInTitle() {
+        let original = "Buy groceries"
+        let tags = ["shopping", "errands"]
+
+        // Embed tags in title (no notes)
+        let embedded = embedTagsWithPlacement(title: original, notes: nil, tags: tags)
+        XCTAssertEqual(embedded.title, "Buy groceries #shopping #errands")
+
+        // Extract and verify
+        let extractedTags = extractTagsFromTask(title: embedded.title, notes: embedded.notes)
+        XCTAssertEqual(extractedTags, tags)
+
+        // Strip and verify original is recovered
+        let stripped = stripTagsFromTask(title: embedded.title, notes: embedded.notes)
+        XCTAssertEqual(stripped.title, original)
+    }
+
+    func testHashtagRoundTripInNotes() {
+        let originalTitle = "Work meeting"
+        let originalNotes = "Discuss project status"
+        let tags = ["work", "meeting"]
+
+        // Embed tags in notes
+        let embedded = embedTagsWithPlacement(title: originalTitle, notes: originalNotes, tags: tags)
+        XCTAssertEqual(embedded.title, originalTitle)
+        XCTAssertEqual(embedded.notes, "Discuss project status\n\n#work #meeting")
+
+        // Extract and verify
+        let extractedTags = extractTagsFromTask(title: embedded.title, notes: embedded.notes)
+        XCTAssertEqual(extractedTags, tags)
+
+        // Strip and verify originals are recovered
+        let stripped = stripTagsFromTask(title: embedded.title, notes: embedded.notes)
+        XCTAssertEqual(stripped.title, originalTitle)
+        XCTAssertEqual(stripped.notes, originalNotes)
+    }
 }

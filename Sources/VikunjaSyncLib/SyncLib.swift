@@ -10,8 +10,9 @@ public struct Config {
     public let syncDbPath: String
     public let listMapPath: String?
     public let syncAllLists: Bool
+    public let syncTagsEnabled: Bool
 
-    public init(remindersListId: String?, vikunjaApiBase: String, vikunjaToken: String, vikunjaProjectId: Int?, syncDbPath: String, listMapPath: String?, syncAllLists: Bool) {
+    public init(remindersListId: String?, vikunjaApiBase: String, vikunjaToken: String, vikunjaProjectId: Int?, syncDbPath: String, listMapPath: String?, syncAllLists: Bool, syncTagsEnabled: Bool = false) {
         self.remindersListId = remindersListId
         self.vikunjaApiBase = vikunjaApiBase
         self.vikunjaToken = vikunjaToken
@@ -19,6 +20,7 @@ public struct Config {
         self.syncDbPath = syncDbPath
         self.listMapPath = listMapPath
         self.syncAllLists = syncAllLists
+        self.syncTagsEnabled = syncTagsEnabled
     }
 }
 
@@ -39,8 +41,9 @@ public struct CommonTask {
     public let notes: String?
     public let isFlagged: Bool
     public let completedAt: String?
+    public let labels: [String]
 
-    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil) {
+    public init(source: String, id: String, listId: String, title: String, isCompleted: Bool, due: String?, start: String?, updatedAt: String?, alarms: [CommonAlarm], recurrence: CommonRecurrence?, dueIsDateOnly: Bool?, startIsDateOnly: Bool?, priority: Int? = nil, notes: String? = nil, isFlagged: Bool = false, completedAt: String? = nil, labels: [String] = []) {
         self.source = source
         self.id = id
         self.listId = listId
@@ -57,6 +60,7 @@ public struct CommonTask {
         self.notes = notes
         self.isFlagged = isFlagged
         self.completedAt = completedAt
+        self.labels = labels
     }
 }
 
@@ -753,5 +757,135 @@ public func diffTasks(reminders: [CommonTask], vikunja: [CommonTask], records: [
         autoMatched: autoMatched,
         ambiguousMatches: ambiguousMatches,
         unknownDirection: unknownDirection
+    )
+}
+
+// MARK: - Hashtag/Label Sync
+
+/// Regex pattern for hashtags: #[a-zA-Z0-9_-]+
+/// Must start with # followed by at least one alphanumeric, underscore, or hyphen
+private let hashtagPattern = try! NSRegularExpression(pattern: "#[a-zA-Z0-9_-]+", options: [])
+
+/// Extract hashtags from text, returning unique tags without the # prefix
+/// - Parameter text: The text to extract tags from
+/// - Returns: Array of unique tag names (without #), preserving first occurrence order
+public func extractTagsFromText(_ text: String?) -> [String] {
+    guard let text = text, !text.isEmpty else { return [] }
+    let range = NSRange(text.startIndex..., in: text)
+    let matches = hashtagPattern.matches(in: text, options: [], range: range)
+    var seen = Set<String>()
+    var tags: [String] = []
+    for match in matches {
+        if let matchRange = Range(match.range, in: text) {
+            let tag = String(text[matchRange].dropFirst()) // Remove #
+            let lowercased = tag.lowercased()
+            if !seen.contains(lowercased) {
+                seen.insert(lowercased)
+                tags.append(tag)
+            }
+        }
+    }
+    return tags
+}
+
+/// Strip all hashtags from text, cleaning up extra whitespace
+/// - Parameter text: The text to strip tags from
+/// - Returns: Text with hashtags removed and whitespace normalized
+public func stripTagsFromText(_ text: String?) -> String {
+    guard let text = text, !text.isEmpty else { return "" }
+    let range = NSRange(text.startIndex..., in: text)
+    let stripped = hashtagPattern.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
+    // Normalize whitespace: collapse multiple spaces, trim
+    let normalized = stripped.components(separatedBy: .whitespacesAndNewlines)
+        .filter { !$0.isEmpty }
+        .joined(separator: " ")
+    return normalized
+}
+
+/// Embed tags into text as hashtags
+/// - Parameters:
+///   - text: Original text (may be nil or empty)
+///   - tags: Tags to embed (without # prefix)
+/// - Returns: Text with hashtags appended, or nil if both inputs are empty
+public func embedTagsInText(_ text: String?, tags: [String]) -> String? {
+    let cleanTags = tags.filter { !$0.isEmpty }
+    if cleanTags.isEmpty {
+        return text
+    }
+    let hashtags = cleanTags.map { "#\($0)" }.joined(separator: " ")
+    if let text = text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        return "\(text.trimmingCharacters(in: .whitespacesAndNewlines))\n\n\(hashtags)"
+    }
+    return hashtags
+}
+
+/// Determine where tags should be placed based on Issue 006 rules:
+/// - If notes is empty/nil: tags go in title
+/// - If notes exists: tags go in notes
+public struct TagPlacement {
+    public let title: String
+    public let notes: String?
+
+    public init(title: String, notes: String?) {
+        self.title = title
+        self.notes = notes
+    }
+}
+
+/// Embed tags into the appropriate field (title or notes) based on placement rules
+/// - Parameters:
+///   - title: Original task title
+///   - notes: Original task notes (may be nil)
+///   - tags: Tags to embed (without # prefix)
+/// - Returns: TagPlacement with tags in the appropriate field
+public func embedTagsWithPlacement(title: String, notes: String?, tags: [String]) -> TagPlacement {
+    let cleanTags = tags.filter { !$0.isEmpty }
+    if cleanTags.isEmpty {
+        return TagPlacement(title: title, notes: notes)
+    }
+    let hashtags = cleanTags.map { "#\($0)" }.joined(separator: " ")
+
+    // If notes is empty/nil, put tags in title
+    if notes == nil || notes!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        return TagPlacement(title: "\(title) \(hashtags)", notes: nil)
+    }
+
+    // Otherwise put tags in notes
+    return TagPlacement(title: title, notes: "\(notes!.trimmingCharacters(in: .whitespacesAndNewlines))\n\n\(hashtags)")
+}
+
+/// Extract tags from both title and notes, returning combined unique list
+/// - Parameters:
+///   - title: Task title
+///   - notes: Task notes (may be nil)
+/// - Returns: Combined unique tags from both fields
+public func extractTagsFromTask(title: String, notes: String?) -> [String] {
+    let titleTags = extractTagsFromText(title)
+    let notesTags = extractTagsFromText(notes)
+
+    // Combine, preserving order and uniqueness (case-insensitive)
+    var seen = Set<String>()
+    var combined: [String] = []
+    for tag in titleTags + notesTags {
+        let lowercased = tag.lowercased()
+        if !seen.contains(lowercased) {
+            seen.insert(lowercased)
+            combined.append(tag)
+        }
+    }
+    return combined
+}
+
+/// Strip tags from both title and notes
+/// - Parameters:
+///   - title: Task title
+///   - notes: Task notes (may be nil)
+/// - Returns: TagPlacement with tags stripped from both fields
+public func stripTagsFromTask(title: String, notes: String?) -> TagPlacement {
+    let strippedTitle = stripTagsFromText(title)
+    let strippedNotes = notes != nil ? stripTagsFromText(notes) : nil
+    return TagPlacement(
+        title: strippedTitle.isEmpty ? title : strippedTitle,
+        notes: strippedNotes?.isEmpty == true ? nil : strippedNotes
     )
 }

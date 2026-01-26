@@ -9,6 +9,7 @@ struct AppSettings: Codable {
     var projectOverrides: [String: Int]
     var backgroundSyncEnabled: Bool
     var syncFrequencyMinutes: Int
+    var syncTagsEnabled: Bool
 
     /// Available sync frequency options (in minutes)
     static let frequencyOptions: [(label: String, minutes: Int)] = [
@@ -33,9 +34,10 @@ struct AppSettings: Codable {
         case projectOverrides
         case backgroundSyncEnabled
         case syncFrequencyMinutes
+        case syncTagsEnabled
     }
 
-    init(apiBase: String, syncAllLists: Bool, remindersListId: String?, vikunjaProjectId: Int?, selectedRemindersIds: [String], projectOverrides: [String: Int], backgroundSyncEnabled: Bool, syncFrequencyMinutes: Int = AppSettings.defaultFrequencyMinutes) {
+    init(apiBase: String, syncAllLists: Bool, remindersListId: String?, vikunjaProjectId: Int?, selectedRemindersIds: [String], projectOverrides: [String: Int], backgroundSyncEnabled: Bool, syncFrequencyMinutes: Int = AppSettings.defaultFrequencyMinutes, syncTagsEnabled: Bool = false) {
         self.apiBase = apiBase
         self.syncAllLists = syncAllLists
         self.remindersListId = remindersListId
@@ -44,6 +46,7 @@ struct AppSettings: Codable {
         self.projectOverrides = projectOverrides
         self.backgroundSyncEnabled = backgroundSyncEnabled
         self.syncFrequencyMinutes = syncFrequencyMinutes
+        self.syncTagsEnabled = syncTagsEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -56,6 +59,7 @@ struct AppSettings: Codable {
         projectOverrides = (try? container.decode([String: Int].self, forKey: .projectOverrides)) ?? [:]
         backgroundSyncEnabled = (try? container.decode(Bool.self, forKey: .backgroundSyncEnabled)) ?? false
         syncFrequencyMinutes = (try? container.decode(Int.self, forKey: .syncFrequencyMinutes)) ?? AppSettings.defaultFrequencyMinutes
+        syncTagsEnabled = (try? container.decode(Bool.self, forKey: .syncTagsEnabled)) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -68,6 +72,7 @@ struct AppSettings: Codable {
         try container.encode(projectOverrides, forKey: .projectOverrides)
         try container.encode(backgroundSyncEnabled, forKey: .backgroundSyncEnabled)
         try container.encode(syncFrequencyMinutes, forKey: .syncFrequencyMinutes)
+        try container.encode(syncTagsEnabled, forKey: .syncTagsEnabled)
     }
 
     static let empty = AppSettings(
@@ -78,6 +83,7 @@ struct AppSettings: Codable {
         selectedRemindersIds: [],
         projectOverrides: [:],
         backgroundSyncEnabled: false,
-        syncFrequencyMinutes: defaultFrequencyMinutes
+        syncFrequencyMinutes: defaultFrequencyMinutes,
+        syncTagsEnabled: false
     )
 }

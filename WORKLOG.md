@@ -117,3 +117,40 @@
   - Tap to share/export individual logs
   - Replaced single "Download Sync Log" with "View Sync Logs" menu item
   - Helps debug background sync issues by viewing historical logs
+
+## 2026-01-26: Issue 006 - Implemented Hashtag Label Sync
+
+- **Implemented opt-in hashtag sync feature (Issue 006)**
+  - Vikunja labels now sync as `#hashtags` in Reminders title/notes (opt-in)
+  - Hashtags in Reminders are parsed and synced back as Vikunja labels
+  - Default OFF to avoid surprising users with hashtag text
+  - Added `syncTagsEnabled` to Config and AppSettings
+  - Added UI toggle in SyncView "Tags/Labels" section
+
+- **SyncLib.swift additions:**
+  - Added `labels: [String]` field to `CommonTask` struct
+  - Added `syncTagsEnabled: Bool` to `Config` struct
+  - Pure functions for hashtag handling:
+    - `extractTagsFromText()` - parse `#[a-zA-Z0-9_-]+` patterns
+    - `stripTagsFromText()` - remove hashtags and normalize whitespace
+    - `embedTagsInText()` - append tags as hashtags
+    - `embedTagsWithPlacement()` - tags in title (no notes) or notes (has notes)
+    - `extractTagsFromTask()` - combine tags from title and notes
+    - `stripTagsFromTask()` - strip tags from both fields
+
+- **SyncRunner.swift additions:**
+  - Added `VikunjaLabel` struct for API decoding
+  - Label API functions: `fetchVikunjaLabels()`, `createVikunjaLabel()`, `updateVikunjaTaskLabels()`, `ensureVikunjaLabelsExist()`
+  - Label cache in `runSync()` for efficient ID lookup
+  - `fetchVikunjaTasks()` now decodes and includes labels
+  - `fetchReminders()` extracts hashtags from title/notes
+  - `createReminder()`/`updateReminder()` embed labels as hashtags when enabled
+  - `createVikunjaTask()`/`updateVikunjaTask()` strip hashtags and update labels via API
+
+- **iOS app updates:**
+  - Added `syncTagsEnabled` setting to AppSettings (default: false)
+  - Updated SyncCoordinator to pass setting to Config
+  - Added "Tags/Labels" section in SyncView with toggle and explanation
+
+- **Added 25 unit tests for hashtag parsing/embedding**
+  - Tests for extraction, stripping, embedding, placement, round-trip safety

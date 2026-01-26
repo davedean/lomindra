@@ -1,25 +1,26 @@
 # Issue 006: Tags/Labels not syncing
 
 **Severity:** Medium
-**Status:** Open
+**Status:** Implemented
 **Reported:** 2026-01-23
-**Updated:** 2026-01-23
+**Updated:** 2026-01-26
+**Implemented:** 2026-01-26
 
 ## Summary
 
-Native Reminders tags cannot be accessed via EventKit (API limitation), but we can implement an **opt-in feature** to sync Vikunja labels as inline hashtags for users who manage labels programmatically (e.g., via agents).
+Native Reminders tags cannot be accessed via EventKit (API limitation). We implemented an **opt-in feature** to sync Vikunja labels as inline hashtags for users who manage labels programmatically (e.g., via agents).
 
-## Proposed Solution: Opt-in Hashtag Sync
+## Solution: Opt-in Hashtag Sync
 
-Add a settings toggle: **"Sync tags using inline text"** (default: OFF)
+Added a settings toggle: **"Sync tags using hashtags"** (default: OFF)
 
 When enabled:
-- **Vikunja → Reminders:** Labels appear as `#label1 #label2` in the reminder
+- **Vikunja → Reminders:** Labels appear as `#label1 #label2` in the reminder title/notes
 - **Reminders → Vikunja:** Parse `#hashtag` text and create Vikunja labels
 
 ### Tag Placement Rules
 
-Tags should be placed in the **title** if the reminder has no notes, otherwise in **notes**:
+Tags are placed in the **title** if the reminder has no notes, otherwise in **notes**:
 
 ```
 If notes is empty/nil:
@@ -36,8 +37,38 @@ This keeps titles clean when notes are available, but still shows tags when ther
 ### Parsing Rules
 
 - **Extract tags:** Match `#[a-zA-Z0-9_-]+` patterns
-- **Strip tags:** Remove tag text from title/notes before comparing/syncing
-- **Round-trip safe:** Tags extracted and re-embedded should produce identical results
+- **Strip tags:** Remove tag text from title/notes before syncing to Vikunja
+- **Round-trip safe:** Tags extracted and re-embedded produce identical results
+
+## Implementation Details
+
+### Files Changed
+
+**SyncLib.swift:**
+- Added `labels` field to `CommonTask`
+- Added `syncTagsEnabled` to `Config`
+- Pure functions: `extractTagsFromText()`, `stripTagsFromText()`, `embedTagsInText()`, `embedTagsWithPlacement()`, `extractTagsFromTask()`, `stripTagsFromTask()`
+
+**SyncRunner.swift:**
+- Added `VikunjaLabel` struct for API decoding
+- Added label API functions: `fetchVikunjaLabels()`, `createVikunjaLabel()`, `updateVikunjaTaskLabels()`, `ensureVikunjaLabelsExist()`
+- Label cache in `runSync()` for efficient label ID lookup
+- `fetchVikunjaTasks()` now includes labels in CommonTask
+- `fetchReminders()` extracts hashtags from title/notes as labels
+- `createReminder()`/`updateReminder()` embed labels as hashtags when enabled
+- `createVikunjaTask()`/`updateVikunjaTask()` strip hashtags and update labels via API
+
+**AppSettings.swift:**
+- Added `syncTagsEnabled` setting (default: false)
+
+**SyncCoordinator.swift:**
+- Pass `syncTagsEnabled` to Config
+
+**SyncView.swift:**
+- Added "Tags/Labels" section with toggle and explanation
+
+**SyncLibTests.swift:**
+- 25 new unit tests for hashtag parsing/embedding
 
 ## Why This Is Useful
 
@@ -63,24 +94,14 @@ Users who want consistent tag visibility across systems, accepting the text-base
 
 | System | Native Tags? | API Access? |
 |--------|--------------|-------------|
-| Apple Reminders | ✅ Yes (UI feature) | ❌ No (private database) |
-| Vikunja | ✅ Yes (labels) | ✅ Yes |
+| Apple Reminders | Yes (UI feature) | No (private database) |
+| Vikunja | Yes (labels) | Yes |
 
 **Empirical verification (2026-01-23):**
 - Added "NextAction" tag to reminder via Reminders UI
 - Probed via EventKit - tag is invisible
 - `EKReminder` has no `tags`, `hashTags`, or similar properties
 - Native tags cannot be synced - this opt-in feature is for hashtag text only
-
-## Implementation Plan
-
-1. Add settings toggle: "Sync tags using inline text" (default OFF)
-2. Add `extractTagsFromText()` function - parse `#hashtag` patterns
-3. Add `embedTagsInText()` function - append tags to title or notes
-4. Add `stripTagsFromText()` function - remove tags for comparison
-5. Modify `CommonTask` construction to handle tag extraction/embedding
-6. Add unit tests for tag parsing/embedding
-7. Document the feature and its limitations
 
 ## Related
 
