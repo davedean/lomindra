@@ -154,3 +154,13 @@
 
 - **Added 25 unit tests for hashtag parsing/embedding**
   - Tests for extraction, stripping, embedding, placement, round-trip safety
+
+- **Fixed label sync detection for existing mapped tasks**
+  - Added `compareLabels` parameter to `tasksDiffer()` and `diffTasks()`
+  - Added fallback check for label differences even when timestamps unchanged
+  - Ensures tasks synced before enabling the feature get their labels synced
+
+- **Known limitation (EventKit API):**
+  - Labels appear as plain `#hashtag` text, not native Reminders tag chips
+  - Native tags are stored in Apple's private database, inaccessible via EventKit
+  - Searchable via `#tagname` - functional workaround for agent workflows
