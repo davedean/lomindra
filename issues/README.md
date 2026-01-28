@@ -17,6 +17,8 @@ Tracking issues identified during sync testing.
 | 003 | [Vikunja reminders to alerts](003-vikunja-reminders-to-alerts.md) | Medium | Low | **Resolved** |
 | 004 | [Recurrence not syncing](004-recurrence-not-syncing.md) | Medium | Low | **Resolved** |
 | 005 | [Spurious start_date added](005-spurious-start-date.md) | Low | Low | **Resolved** |
+| 016 | [Date-only timezone drift](016-date-only-timezone-drift.md) | Medium | Medium | **Resolved** |
+| 017 | [EventKit auto-populates start_date](017-eventkit-auto-start-date.md) | Low | Low | Open |
 
 ### Feature Gaps (Lower Priority)
 

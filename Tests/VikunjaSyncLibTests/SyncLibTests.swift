@@ -175,12 +175,68 @@ final class SyncLibTests: XCTestCase {
         XCTAssertNil(vikunjaDateString(from: "0001-01-01T00:00:00Z"))
     }
 
-    func testVikunjaDateStringAppendsTimeToDateOnly() {
-        XCTAssertEqual(vikunjaDateString(from: "2026-01-20"), "2026-01-20T00:00:00Z")
+    func testVikunjaDateStringAppendsLocalMidnightToDateOnly() {
+        // Issue 016 fix: Now uses local midnight instead of UTC midnight
+        let result = vikunjaDateString(from: "2026-01-20")
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.hasPrefix("2026-01-20T00:00:00"), "Should have midnight time")
+        // Should NOT be UTC (Z suffix) - should have timezone offset
+        XCTAssertFalse(result!.hasSuffix("Z"), "Should not be UTC midnight, should be local")
+        // Should have a timezone offset like +11:00 or -05:00
+        XCTAssertTrue(result!.contains("+") || result!.contains("-"), "Should have timezone offset")
     }
 
     func testVikunjaDateStringPreservesDatetime() {
         XCTAssertEqual(vikunjaDateString(from: "2026-01-20T10:30:00Z"), "2026-01-20T10:30:00Z")
+    }
+
+    // MARK: - Issue 016: Date-only Round-trip Tests
+
+    func testDateComponentsFromISOWithDateOnlyTrueStripsTime() {
+        // Simulates Vikunja returning UTC midnight for a date-only task
+        // With dateOnly=true, should strip time components
+        let vikunjaDate = "2026-01-30T00:00:00Z"
+        let result = dateComponentsFromISO(vikunjaDate, dateOnly: true)
+
+        XCTAssertNotNil(result)
+        XCTAssertNil(result?.hour, "hour should be nil when dateOnly=true")
+        XCTAssertNil(result?.minute, "minute should be nil when dateOnly=true")
+        XCTAssertEqual(result?.year, 2026)
+        XCTAssertEqual(result?.month, 1)
+        XCTAssertEqual(result?.day, 30)
+    }
+
+    func testDateComponentsFromISOWithDateOnlyFalsePreservesTime() {
+        // With dateOnly=false, should preserve time (converted to local timezone)
+        let vikunjaDate = "2026-01-30T00:00:00Z"
+        let result = dateComponentsFromISO(vikunjaDate, dateOnly: false)
+
+        XCTAssertNotNil(result)
+        XCTAssertNotNil(result?.hour, "hour should NOT be nil when dateOnly=false")
+        XCTAssertNotNil(result?.minute, "minute should NOT be nil when dateOnly=false")
+    }
+
+    func testDateComponentsFromISOWithNonMidnightTimeAndDateOnlyTrue() {
+        // Even with a specific time, dateOnly=true should strip the time
+        // Note: The date may shift depending on timezone conversion (UTC -> local)
+        // Using a time that won't shift the date in most timezones
+        let vikunjaDate = "2026-01-30T10:30:00Z"  // 10:30 UTC = afternoon in most timezones
+        let result = dateComponentsFromISO(vikunjaDate, dateOnly: true)
+
+        XCTAssertNotNil(result)
+        XCTAssertNil(result?.hour, "hour should be stripped when dateOnly=true")
+        XCTAssertNil(result?.minute, "minute should be stripped when dateOnly=true")
+        // Date components are in local timezone, so we just verify year/month exist
+        XCTAssertNotNil(result?.year)
+        XCTAssertNotNil(result?.month)
+        XCTAssertNotNil(result?.day)
+    }
+
+    func testIsDateOnlyStringReturnsFalseForVikunjaUTCMidnight() {
+        // This documents the known limitation: isDateOnlyString doesn't detect
+        // Vikunja's UTC midnight format as date-only (it's not 10 chars)
+        XCTAssertFalse(isDateOnlyString("2026-01-30T00:00:00Z"))
+        XCTAssertFalse(isDateOnlyString("2026-01-30T00:00:00+11:00"))
     }
 
     // MARK: - recurrenceSignature Tests

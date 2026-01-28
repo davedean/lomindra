@@ -1292,11 +1292,13 @@ public func runSync(config: Config, options: SyncOptions) throws -> SyncSummary 
                 if task.isCompleted, let completedAt = task.completedAt, let date = parseISODate(completedAt) {
                     reminder.completionDate = date
                 }
-                if let due = dateComponentsFromISO(task.due, dateOnly: isDateOnlyString(task.due)) {
+                // Issue 016 fix: Use task.dueIsDateOnly from metadata, fall back to string detection
+                if let due = dateComponentsFromISO(task.due, dateOnly: task.dueIsDateOnly ?? isDateOnlyString(task.due)) {
                     reminder.dueDateComponents = due
                 }
                 // Explicitly set/clear startDateComponents (EventKit may auto-set it when due is set)
-                if let start = dateComponentsFromISO(task.start, dateOnly: isDateOnlyString(task.start)) {
+                // Issue 016 fix: Use task.startIsDateOnly from metadata, fall back to string detection
+                if let start = dateComponentsFromISO(task.start, dateOnly: task.startIsDateOnly ?? isDateOnlyString(task.start)) {
                     reminder.startDateComponents = start
                 } else {
                     reminder.startDateComponents = nil
