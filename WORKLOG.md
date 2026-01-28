@@ -164,3 +164,21 @@
   - Labels appear as plain `#hashtag` text, not native Reminders tag chips
   - Native tags are stored in Apple's private database, inaccessible via EventKit
   - Searchable via `#tagname` - functional workaround for agent workflows
+
+## 2026-01-28: Issue 016 - Fixed Date-only Timezone Drift
+
+*Work completed on branch `fix/issue-016-date-only` (separate PR)*
+
+- **Fixed Issue 016: Date-only reminders display wrong time after sync**
+  - Root cause 1: `vikunjaDateString()` used UTC midnight (`T00:00:00Z`), displaying as 11am in Melbourne
+  - Root cause 2: `createReminder()` used `isDateOnlyString()` instead of `task.dueIsDateOnly` metadata
+  - Fix 1: `vikunjaDateString()` now uses local midnight (`T00:00:00+11:00` for Melbourne)
+  - Fix 2: `createReminder()` now uses `task.dueIsDateOnly ?? isDateOnlyString(task.due)`
+  - Added 4 unit tests for dateComponentsFromISO dateOnly behavior
+  - Created integration test `scripts/test_016_integration.swift` to verify fix
+  - Round-trip confirmed: date-only (hour=nil) preserved after sync
+
+- **Created Issue 017: EventKit auto-populates startDateComponents**
+  - EventKit automatically sets `startDateComponents` when `dueDateComponents` is set
+  - Documented behavior - not a bug in sync code
+  - Recommendation: Don't sync `start_date` when it equals `due_date`
