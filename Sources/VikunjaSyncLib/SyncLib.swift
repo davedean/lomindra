@@ -256,7 +256,15 @@ public func vikunjaDateString(from value: String?) -> String? {
     let normalized = normalizeDue(value)
     if normalized == "none" { return nil }
     if normalized.count == 10 {
-        return normalized + "T00:00:00Z"
+        // Issue 016 fix: Use local midnight instead of UTC midnight
+        // This ensures Vikunja displays the correct local date (00:00 in user's timezone)
+        // rather than a misleading time (e.g., 11am in Melbourne for UTC midnight)
+        let tz = TimeZone.current
+        let offsetSeconds = tz.secondsFromGMT()
+        let hours = abs(offsetSeconds) / 3600
+        let mins = (abs(offsetSeconds) % 3600) / 60
+        let sign = offsetSeconds >= 0 ? "+" : "-"
+        return normalized + String(format: "T00:00:00%@%02d:%02d", sign, hours, mins)
     }
     return normalized
 }
