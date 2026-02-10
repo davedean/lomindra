@@ -4,6 +4,8 @@ struct LoginView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
 
+    let allowsDismiss: Bool
+
     @State private var apiBase: String = ""
     @State private var username: String = ""
     @State private var password: String = ""
@@ -39,9 +41,11 @@ struct LoginView: View {
         }
         .navigationTitle("Sign In")
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Close") {
-                    dismiss()
+            if allowsDismiss {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        dismiss()
+                    }
                 }
             }
         }

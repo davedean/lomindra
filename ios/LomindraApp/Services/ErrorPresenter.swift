@@ -35,4 +35,12 @@ enum ErrorPresenter {
         }
         return SafeLog.redact(nsError.localizedDescription)
     }
+
+    static func isAuthenticationError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        if nsError.domain == "vikunja" {
+            return nsError.code == 401 || nsError.code == 403
+        }
+        return false
+    }
 }

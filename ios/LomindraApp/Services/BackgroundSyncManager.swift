@@ -221,6 +221,10 @@ final class BackgroundSyncManager {
                 reportPath: savedReportPath
             )
         } catch {
+            let isAuthError = ErrorPresenter.isAuthenticationError(error)
+            if isAuthError {
+                keychainStore.deleteToken()
+            }
             SyncLogStore.append("Background sync failed: \(ErrorPresenter.userMessage(error))", to: logURL)
             SyncLogStore.notifyUpdated()
             return BackgroundSyncStatus(
@@ -228,7 +232,8 @@ final class BackgroundSyncManager {
                 success: false,
                 summary: nil,
                 errorMessage: ErrorPresenter.userMessage(error),
-                reportPath: nil
+                reportPath: nil,
+                requiresReauth: isAuthError
             )
         }
     }

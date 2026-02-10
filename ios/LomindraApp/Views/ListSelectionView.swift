@@ -137,6 +137,10 @@ struct ListSelectionView: View {
             } catch {
                 projects = []
                 projectError = "Failed to load Vikunja projects: \(ErrorPresenter.userMessage(error))"
+                if ErrorPresenter.isAuthenticationError(error) {
+                    appState.clearToken()
+                    showLogin = true
+                }
             }
         } else if appState.token != nil && !(appState.token?.isEmpty ?? true) {
             projectError = "Missing server URL for Vikunja projects."
