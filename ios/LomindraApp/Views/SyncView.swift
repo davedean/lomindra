@@ -211,6 +211,10 @@ struct SyncView: View {
                 guard currentRunId == runId else { return }
                 errorMessage = "Sync failed: \(ErrorPresenter.userMessage(error))"
                 statusMessage = "Sync failed."
+                if ErrorPresenter.isAuthenticationError(error) {
+                    appState.clearToken()
+                    showLogin = true
+                }
                 finishedRunId = runId
             }
             SyncLogStore.append("Sync failed: \(ErrorPresenter.userMessage(error))", to: logURL)

@@ -9,20 +9,28 @@ struct MainView: View {
         appState.token?.isEmpty == false
     }
 
+    private var requiresBlockingLogin: Binding<Bool> {
+        Binding(
+            get: { !isSignedIn },
+            set: { _ in }
+        )
+    }
+
     var body: some View {
         NavigationView {
             Form {
-                if !isSignedIn {
+                if isSignedIn {
+                    ListSelectionView(showLogin: $showLogin)
+                    SyncView(showLogin: $showLogin)
+                } else {
                     Section {
-                        Text("Sign in to Vikunja to sync projects and tasks.")
+                        Text("Your session has expired or you are signed out.")
                             .foregroundColor(.secondary)
-                        Button("Sign In") {
-                            showLogin = true
-                        }
+                        Text("Please sign in to continue.")
+                            .foregroundColor(.secondary)
+                            .font(.footnote)
                     }
                 }
-                ListSelectionView(showLogin: $showLogin)
-                SyncView(showLogin: $showLogin)
             }
             .navigationTitle("Lomindra")
             .toolbar {
@@ -49,13 +57,21 @@ struct MainView: View {
         }
         .sheet(isPresented: $showLogin) {
             NavigationView {
-                LoginView()
+                LoginView(allowsDismiss: true)
+            }
+        }
+        .fullScreenCover(isPresented: requiresBlockingLogin) {
+            NavigationView {
+                LoginView(allowsDismiss: false)
             }
         }
         .sheet(isPresented: $showLogs) {
             NavigationView {
                 SyncLogsView()
             }
+        }
+        .onAppear {
+            appState.reloadTokenFromKeychain()
         }
         .onChange(of: appState.token) { token in
             if let token = token, !token.isEmpty {

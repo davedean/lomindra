@@ -28,6 +28,14 @@ final class AppState: ObservableObject {
 
     func clearToken() {
         token = nil
+        cachedProjects = []
         keychain.deleteToken()
+    }
+
+    func reloadTokenFromKeychain() {
+        token = keychain.readToken()
+        if token == nil {
+            cachedProjects = []
+        }
     }
 }

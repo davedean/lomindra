@@ -17,6 +17,9 @@ struct LomindraApp: App {
                 .environmentObject(appState)
         }
         .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                appState.reloadTokenFromKeychain()
+            }
             if phase == .background {
                 BackgroundSyncManager.shared.scheduleAppRefresh()
             }
